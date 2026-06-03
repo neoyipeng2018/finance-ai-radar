@@ -1,0 +1,30 @@
+{
+  "sessions": 2,
+  "total_source_clicks": 1,
+  "top_items": [
+    [
+      "dataset-sec-edgar",
+      1
+    ]
+  ],
+  "top_source_types": [
+    [
+      "dataset",
+      1
+    ]
+  ],
+  "top_themes": [
+    [
+      "Public-domain finance text",
+      1
+    ]
+  ],
+  "top_jobs": [
+    [
+      "job-financial-nlp-engineer-reviewed",
+      1
+    ]
+  ],
+  "average_scroll_depth": 40,
+  "high_intent_paths": []
+}
