@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Hero } from '../components/Hero';
 import { ContentCard } from '../components/ContentCard';
 import { EditorialMetrics } from '../components/EditorialMetrics';
@@ -25,12 +26,12 @@ export default function Home() {
         <nav className="nav">
           <a href="#featured">Featured</a>
           <a href="#library">Library</a>
-          <a href="/datasets">Datasets</a>
-          <a href="/huggingface">Hugging Face</a>
-          <a href="/jobs">Jobs</a>
+          <Link href="/datasets">Datasets</Link>
+          <Link href="/huggingface">Hugging Face</Link>
+          <Link href="/jobs">Jobs</Link>
           <a href="#themes">Themes</a>
           <a href="#monetization">Sponsor</a>
-          <a href="/review">Queue</a>
+          <Link href="/review">Queue</Link>
         </nav>
       </header>
 

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ContentItem } from '../lib/types';
 
 export function HiringSignals({ items }: { items: ContentItem[] }) {
@@ -23,7 +24,7 @@ export function HiringSignals({ items }: { items: ContentItem[] }) {
         <article className="moat-card">
           <h3>Jobs product surface</h3>
           <p>Use the jobs page to connect demand signals to papers, datasets, repos, and learning paths.</p>
-          <a className="ghost inline-link" href="/jobs">Open AI + finance jobs</a>
+          <Link className="ghost inline-link" href="/jobs">Open AI + finance jobs</Link>
         </article>
       </div>
     </section>
