@@ -7,7 +7,7 @@ describe('review queue', () => {
     const candidates = getReviewCandidates();
     const queueSummary = reviewQueueSummary(candidates);
 
-    expect(candidates.length).toBeGreaterThanOrEqual(4);
+    expect(candidates.length).toBeGreaterThanOrEqual(1);
     expect(queueSummary.total).toBe(candidates.length);
     expect(queueSummary.byStatus.candidate).toBeGreaterThan(0);
     expect(candidates.every((candidate) => candidate.licenseGuess.trim().length > 0)).toBe(true);
@@ -44,6 +44,25 @@ describe('review queue', () => {
     ];
 
     expect(() => parseReviewCandidateRows(rows)).toThrow(/duplicate/i);
+  });
+
+  it('accepts concise SPDX-style license guesses from ingestion candidates', () => {
+    const [candidate] = parseReviewCandidateRows([
+      {
+        candidate_id: 'hf-mit-license-candidate',
+        source_type: 'huggingface_dataset',
+        title: 'MIT-licensed financial sentiment dataset',
+        url: 'https://huggingface.co/datasets/example/finance-sentiment',
+        publisher: 'Example',
+        discovered_at: '2026-06-03T00:00:00.000Z',
+        relevance_reason: 'A relevant finance sentiment dataset candidate with a concise SPDX license token.',
+        license_guess: 'mit',
+        status: 'candidate',
+        reviewer_notes: 'Needs source provenance and leakage review.',
+      },
+    ]);
+
+    expect(candidate.licenseGuess).toBe('mit');
   });
 
   it('converts reviewed queue rows into content drafts with required license and caveat fields', () => {

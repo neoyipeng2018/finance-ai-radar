@@ -2,7 +2,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { dirname, join } from 'node:path';
 import { AnalyticsEventSchema, type AnalyticsEvent } from './analytics';
 
-const fields = ['event_type', 'anonymous_id', 'session_id', 'path', 'item_id', 'source_type', 'theme', 'query', 'rank_position', 'job_id', 'role_family', 'finance_domain', 'location', 'dwell_ms', 'scroll_depth', 'referrer', 'created_at'] as const;
+const fields = ['event_type', 'anonymous_id', 'session_id', 'path', 'item_id', 'source_type', 'theme', 'query', 'date_window', 'custom_days', 'rank_position', 'job_id', 'role_family', 'finance_domain', 'location', 'dwell_ms', 'scroll_depth', 'referrer', 'created_at'] as const;
 
 type EventField = typeof fields[number];
 
@@ -20,6 +20,8 @@ function fieldValue(event: AnalyticsEvent, field: EventField): string {
     source_type: event.sourceType ?? '',
     theme: event.theme ?? '',
     query: event.query ?? '',
+    date_window: event.dateWindow ?? '',
+    custom_days: typeof event.customDays === 'number' ? String(event.customDays) : '',
     rank_position: typeof event.rankPosition === 'number' ? String(event.rankPosition) : '',
     job_id: event.jobId ?? '',
     role_family: event.roleFamily ?? '',
@@ -57,6 +59,8 @@ function parseEventLine(line: string): AnalyticsEvent | null {
     sourceType: row.source_type || undefined,
     theme: row.theme || undefined,
     query: row.query || undefined,
+    dateWindow: row.date_window ? AnalyticsEventSchema.shape.dateWindow.parse(row.date_window) : undefined,
+    customDays: row.custom_days ? Number(row.custom_days) : undefined,
     rankPosition: row.rank_position ? Number(row.rank_position) : undefined,
     jobId: row.job_id || undefined,
     roleFamily: row.role_family || undefined,

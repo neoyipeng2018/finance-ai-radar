@@ -17,7 +17,7 @@ describe('datasets and jobs intelligence', () => {
 
   it('tracks AI plus finance jobs as demand-side intelligence', () => {
     const jobs = getJobsCoverage(sourceItems);
-    const jobResults = searchItems(sourceItems, { query: 'financial NLP engineer', sourceType: 'job', theme: 'all' });
+    const jobResults = searchItems(sourceItems, { query: 'financial NLP engineer', sourceType: 'job', theme: 'all', dateWindow: 'all' });
 
     expect(jobs.reviewed).toBeGreaterThanOrEqual(3);
     expect(jobs.roleFamilies).toContain('quant');
@@ -29,8 +29,8 @@ describe('datasets and jobs intelligence', () => {
   it('adds Hugging Face models and papers as first-class finance AI sources', () => {
     const counts = getSourceCounts(sourceItems);
     const coverage = getHuggingFaceCoverage(sourceItems);
-    const modelResults = searchItems(sourceItems, { query: 'FinBERT', sourceType: 'huggingface_model', theme: 'all' });
-    const paperResults = searchItems(sourceItems, { query: 'FinGPT', sourceType: 'huggingface_paper', theme: 'all' });
+    const modelResults = searchItems(sourceItems, { query: 'FinBERT', sourceType: 'huggingface_model', theme: 'all', dateWindow: 'all' });
+    const paperResults = searchItems(sourceItems, { query: 'FinGPT', sourceType: 'huggingface_paper', theme: 'all', dateWindow: 'all' });
 
     expect(counts.huggingface_model).toBeGreaterThanOrEqual(2);
     expect(counts.huggingface_paper).toBeGreaterThanOrEqual(2);

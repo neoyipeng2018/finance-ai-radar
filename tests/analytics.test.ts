@@ -19,6 +19,26 @@ describe('analytics loop', () => {
     expect(AnalyticsEventSchema.safeParse({ ...event, scrollDepth: 120 }).success).toBe(false);
   });
 
+  it('accepts freshness filter analytics and summarizes selected windows', () => {
+    const event = AnalyticsEventSchema.parse({
+      eventType: 'filter_change',
+      anonymousId: 'anon-123456',
+      sessionId: 'session-123456',
+      path: '/',
+      query: 'sentiment',
+      sourceType: 'all',
+      theme: 'all',
+      dateWindow: 'custom',
+      customDays: 45,
+      createdAt: '2026-06-03T00:00:00.000Z',
+    });
+    const summary = summarizeAnalyticsEvents([event]);
+
+    expect(event.dateWindow).toBe('custom');
+    expect(summary.topDateWindows[0]).toEqual({ key: 'custom', count: 1 });
+    expect(AnalyticsEventSchema.safeParse({ ...event, customDays: 4000 }).success).toBe(false);
+  });
+
   it('summarizes clicks, themes, dwell time, scroll depth, and jobs from event rows', () => {
     const summary = summarizeAnalyticsEvents([
       {

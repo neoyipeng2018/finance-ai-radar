@@ -19,6 +19,8 @@ export const AnalyticsEventSchema = z.object({
   sourceType: z.string().optional(),
   theme: z.string().optional(),
   query: z.string().optional(),
+  dateWindow: z.enum(['7d', 'week', 'month', 'year', 'all', 'custom']).optional(),
+  customDays: z.number().int().min(1).max(3650).optional(),
   rankPosition: z.number().int().optional(),
   jobId: z.string().optional(),
   roleFamily: z.string().optional(),
@@ -41,6 +43,7 @@ export type AnalyticsSummary = {
   topItems: CountPair[];
   topSourceTypes: CountPair[];
   topThemes: CountPair[];
+  topDateWindows: CountPair[];
   topJobs: CountPair[];
   averageScrollDepth: number;
   highIntentPaths: HighIntentPath[];
@@ -67,6 +70,7 @@ export function summarizeAnalyticsEvents(events: AnalyticsEvent[]): AnalyticsSum
   const itemClicks = new Map<string, number>();
   const sourceClicks = new Map<string, number>();
   const themeClicks = new Map<string, number>();
+  const dateWindows = new Map<string, number>();
   const jobClicks = new Map<string, number>();
   const dwellByPath = new Map<string, number[]>();
   const scrollDepths: number[] = [];
@@ -77,6 +81,9 @@ export function summarizeAnalyticsEvents(events: AnalyticsEvent[]): AnalyticsSum
       increment(itemClicks, event.itemId);
       increment(sourceClicks, event.sourceType);
       increment(themeClicks, event.theme);
+    }
+    if (event.eventType === 'filter_change') {
+      increment(dateWindows, event.dateWindow);
     }
     if (event.eventType === 'job_click') {
       increment(jobClicks, event.jobId);
@@ -102,6 +109,7 @@ export function summarizeAnalyticsEvents(events: AnalyticsEvent[]): AnalyticsSum
     topItems: topPairs(itemClicks),
     topSourceTypes: topPairs(sourceClicks),
     topThemes: topPairs(themeClicks),
+    topDateWindows: topPairs(dateWindows),
     topJobs: topPairs(jobClicks),
     averageScrollDepth: average(scrollDepths),
     highIntentPaths,

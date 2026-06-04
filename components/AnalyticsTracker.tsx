@@ -8,6 +8,8 @@ type EventPayload = {
   sourceType?: string;
   theme?: string;
   query?: string;
+  dateWindow?: string;
+  customDays?: number;
   rankPosition?: number;
   jobId?: string;
   roleFamily?: string;

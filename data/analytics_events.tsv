@@ -1,8 +1,8 @@
-event_type	anonymous_id	session_id	path	item_id	source_type	theme	query	rank_position	job_id	role_family	finance_domain	location	dwell_ms	scroll_depth	referrer	created_at
-page_view	seed-anon	seed-session	/												direct	2026-06-03T00:00:00.000Z
-source_click	seed-anon	seed-session	/	dataset-sec-edgar	dataset	Public-domain finance text		1							direct	2026-06-03T00:01:00.000Z
-job_click	seed-anon	seed-session	/jobs						job-financial-nlp-engineer-reviewed	engineering	research automation	Singapore / remote			direct	2026-06-03T00:02:00.000Z
-session_end	seed-anon	seed-session	/										24000	80	direct	2026-06-03T00:03:00.000Z
-page_view	e65d2928-5f51-486f-a590-2a8cdbc7157b	1392fa5a-1fa6-4c65-8195-8ccf4fc283c3	/													2026-06-03T15:59:45.959Z
-session_end	e65d2928-5f51-486f-a590-2a8cdbc7157b	1392fa5a-1fa6-4c65-8195-8ccf4fc283c3	/										5063	0		2026-06-03T15:59:51.021Z
-page_view	e65d2928-5f51-486f-a590-2a8cdbc7157b	1392fa5a-1fa6-4c65-8195-8ccf4fc283c3	/huggingface												http://localhost:3001/	2026-06-03T15:59:53.156Z
+event_type	anonymous_id	session_id	path	item_id	source_type	theme	query	date_window	custom_days	rank_position	job_id	role_family	finance_domain	location	dwell_ms	scroll_depth	referrer	created_at
+page_view	seed-anon	seed-session	/														direct	2026-06-03T00:00:00.000Z
+source_click	seed-anon	seed-session	/	dataset-sec-edgar	dataset	Public-domain finance text				1							direct	2026-06-03T00:01:00.000Z
+job_click	seed-anon	seed-session	/jobs								job-financial-nlp-engineer-reviewed	engineering	research automation	Singapore / remote			direct	2026-06-03T00:02:00.000Z
+session_end	seed-anon	seed-session	/												24000	80	direct	2026-06-03T00:03:00.000Z
+page_view	e65d2928-5f51-486f-a590-2a8cdbc7157b	1392fa5a-1fa6-4c65-8195-8ccf4fc283c3	/															2026-06-03T15:59:45.959Z
+session_end	e65d2928-5f51-486f-a590-2a8cdbc7157b	1392fa5a-1fa6-4c65-8195-8ccf4fc283c3	/												5063	0		2026-06-03T15:59:51.021Z
+page_view	e65d2928-5f51-486f-a590-2a8cdbc7157b	1392fa5a-1fa6-4c65-8195-8ccf4fc283c3	/huggingface														http://localhost:3001/	2026-06-03T15:59:53.156Z

@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance AI Radar — Generation, Daily Refresh, and Self-Learning System Research</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #081018;
+      --panel: #101d2b;
+      --panel-2: #142536;
+      --text: #e8f2ff;
+      --muted: #9fb2c8;
+      --line: #294158;
+      --accent: #67e8f9;
+      --accent-2: #a7f3d0;
+      --warn: #fbbf24;
+      --danger: #fb7185;
+      --code: #07111d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.62;
+      background: radial-gradient(circle at top left, rgba(103,232,249,.16), transparent 34rem), var(--bg);
+      color: var(--text);
+    }
+    a { color: var(--accent); }
+    .shell { max-width: 1180px; margin: 0 auto; padding: 48px 24px 80px; }
+    header.hero { padding: 42px; border: 1px solid var(--line); border-radius: 28px; background: linear-gradient(135deg, rgba(16,29,43,.94), rgba(20,37,54,.78)); box-shadow: 0 24px 80px rgba(0,0,0,.28); }
+    .eyebrow { color: var(--accent-2); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 800; }
+    h1 { font-size: clamp(34px, 6vw, 68px); line-height: 1.03; margin: 14px 0 18px; }
+    h2 { font-size: 30px; margin: 44px 0 16px; padding-top: 10px; border-top: 1px solid var(--line); }
+    h3 { font-size: 22px; margin: 28px 0 10px; }
+    h4 { margin: 20px 0 8px; color: var(--accent-2); }
+    p, li { color: var(--muted); }
+    strong, th { color: var(--text); }
+    .lead { font-size: 20px; color: #d9e8fb; max-width: 920px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin: 24px 0; }
+    .card, .callout { border: 1px solid var(--line); background: rgba(16,29,43,.78); border-radius: 18px; padding: 20px; }
+    .metric strong { display: block; font-size: 32px; color: var(--accent); }
+    .metric span { color: var(--muted); }
+    .callout { border-left: 4px solid var(--accent); }
+    .warning { border-left-color: var(--warn); }
+    .danger { border-left-color: var(--danger); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    code { background: var(--code); color: #dbeafe; padding: 2px 6px; border-radius: 6px; }
+    pre { background: var(--code); color: #dbeafe; border: 1px solid var(--line); border-radius: 16px; overflow: auto; padding: 18px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; overflow: hidden; border-radius: 16px; }
+    th, td { border: 1px solid var(--line); padding: 11px 12px; vertical-align: top; text-align: left; }
+    th { background: rgba(103,232,249,.1); }
+    td { color: var(--muted); background: rgba(16,29,43,.45); }
+    .toc { columns: 2; column-gap: 40px; }
+    .toc li { break-inside: avoid; margin-bottom: 6px; }
+    .flow { counter-reset: step; }
+    .flow li { list-style: none; margin: 12px 0; padding-left: 42px; position: relative; }
+    .flow li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #06202c; font-weight: 900; }
+    .small { font-size: 13px; color: #89a0b9; }
+    @media (max-width: 760px) { .toc { columns: 1; } header.hero { padding: 26px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">Internal research document · generated from live repository inspection</div>
+      <h1>How Finance AI Radar is generated, refreshed daily, deployed, and self-learns</h1>
+      <p class="lead">This document maps the full operating system behind <strong>Finance AI Radar</strong>: the Next.js static-site build, source-data model, editorial gates, ingestion scripts, local learning files, Hermes cron jobs, GitHub Pages deployment helper, and the current self-learning loop. It is intentionally detailed enough for a future agent or human maintainer to modify the site without rediscovering the pipeline.</p>
+      <p class="small">Inspected project path: <code>/Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar</code>. Public URL: <code>https://neoyipeng2018.github.io/finance-ai-radar/</code>. Deployment helper: <code>/Users/nyp/.hermes/scripts/deploy_finance_ai_radar_pages.py</code>.</p>
+    </header>
+
+    <section id="executive-summary">
+      <h2>1. Executive summary</h2>
+      <div class="grid">
+        <article class="card metric"><strong>31</strong><span>reviewed source items in <code>data/sourceItems.ts</code></span></article>
+        <article class="card metric"><strong>16</strong><span>source categories represented, including GitHub, arXiv, datasets, jobs, Hugging Face models and papers</span></article>
+        <article class="card metric"><strong>2</strong><span>daily Hermes cron agents: 03:00 SGT review and 05:00 SGT update/deploy</span></article>
+        <article class="card metric"><strong>$0</strong><span>current hosting cost via GitHub Pages static export</span></article>
+      </div>
+      <p>Finance AI Radar is currently a <strong>static exported Next.js application</strong>. The rendered pages are produced at build time from TypeScript and TSV/JSON files in the repo, then force-pushed to the <code>gh-pages</code> branch of <code>git@github.com:neoyipeng2018/finance-ai-radar.git</code>. The site is refreshed by a two-stage Hermes Agent loop: a 03:00 SGT review agent produces/updates implementation guidance, and a 05:00 SGT production agent makes one coherent update, runs verification, builds with the GitHub Pages base path, deploys, and checks the live URL.</p>
+      <div class="callout warning">
+        <strong>Most important intricacy:</strong> the repository has both a source tree inside the broader <code>my_life</code> repo and a deployment helper that syncs the source into the standalone GitHub repository <code>neoyipeng2018/finance-ai-radar</code>. The local source is not itself a standalone Git repo; its immediate <code>git status</code> resolves to <code>my_life</code>. Deployment therefore depends on the helper cloning and syncing the standalone public repo before publishing <code>out/</code>.
+      </div>
+    </section>
+
+    <section id="table-of-contents">
+      <h2>2. Table of contents</h2>
+      <ol class="toc">
+        <li><a href="#architecture">Architecture at a glance</a></li>
+        <li><a href="#source-files">Source files and responsibilities</a></li>
+        <li><a href="#data-model">Data model and editorial constraints</a></li>
+        <li><a href="#page-generation">How pages are generated</a></li>
+        <li><a href="#refresh-loop">Daily refresh loop</a></li>
+        <li><a href="#deployment">Deployment mechanics</a></li>
+        <li><a href="#self-learning">Self-learning and feedback system</a></li>
+        <li><a href="#ingestion">Ingestion scripts and candidate flow</a></li>
+        <li><a href="#analytics">Analytics reality and limitations</a></li>
+        <li><a href="#verification">Verification gates</a></li>
+        <li><a href="#pitfalls">Known pitfalls</a></li>
+        <li><a href="#operator-playbook">Operator playbook</a></li>
+      </ol>
+    </section>
+
+    <section id="architecture">
+      <h2>3. Architecture at a glance</h2>
+      <pre><code>Source and operating files
+  AGENTS.md
+  data/sourceItems.ts
+  data/review_queue.tsv
+  data/source_ledger.tsv
+  data/daily_reflections.tsv
+  data/daily_metrics.json
+  app/**/*.tsx
+  components/**/*.tsx
+  lib/**/*.ts
+  scripts/*.py
+        │
+        ▼
+Next.js static generation
+  next.config.ts: output='export', trailingSlash=true,
+  basePath=NEXT_PUBLIC_BASE_PATH, assetPrefix=basePath
+        │
+        ▼
+Build output
+  NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build
+  emits static files under out/
+        │
+        ▼
+Deployment helper
+  /Users/nyp/.hermes/scripts/deploy_finance_ai_radar_pages.py
+  installs deps, tests, typechecks, builds, syncs source repo,
+  initializes out/ as gh-pages, force-pushes gh-pages
+        │
+        ▼
+Public site
+  https://neoyipeng2018.github.io/finance-ai-radar/</code></pre>
+      <p>The production site has no server-side runtime on GitHub Pages. Anything visible to users must be present in the static export. In practice, that means the site learns and changes when the daily agent modifies files, commits/syncs them, rebuilds, and redeploys.</p>
+    </section>
+
+    <section id="source-files">
+      <h2>4. Source files and responsibilities</h2>
+      <table>
+        <thead><tr><th>File / directory</th><th>Role</th><th>Key details</th></tr></thead>
+        <tbody>
+          <tr><td><code>next.config.ts</code></td><td>Static export configuration</td><td>Sets <code>output: 'export'</code>, <code>trailingSlash: true</code>, <code>basePath</code> from <code>NEXT_PUBLIC_BASE_PATH</code>, <code>assetPrefix</code>, and unoptimized images. This is what makes GitHub Pages hosting possible.</td></tr>
+          <tr><td><code>package.json</code></td><td>Build/test commands</td><td>Scripts are <code>dev</code>, <code>build</code>, <code>start</code>, <code>lint</code>, <code>typecheck</code>, and <code>test</code>. Dependencies include Next 16, React 19, Zod, Vitest, TypeScript, ESLint.</td></tr>
+          <tr><td><code>AGENTS.md</code></td><td>Operating constitution</td><td>Defines mission, editorial rule, current learning, ranking heuristics, dataset/Hugging Face/jobs priorities, daily loop rules, and experiment backlog. Cron agents are explicitly told to read it.</td></tr>
+          <tr><td><code>data/sourceItems.ts</code></td><td>Canonical published source library</td><td>Typed array of <code>ContentItem</code> objects. Homepage and topic pages import it directly. Current inspected count: 31 reviewed items.</td></tr>
+          <tr><td><code>data/source_ledger.tsv</code></td><td>Human-auditable source ledger</td><td>TSV record of item IDs, source type, title, URL, use case, technique, rationale, caveat, license note, review status, and notes.</td></tr>
+          <tr><td><code>data/review_queue.tsv</code></td><td>Pre-publication queue</td><td>Candidate items discovered by manual/automated ingestion. The review page reads this, but the homepage does not publish candidates unless they are promoted into <code>sourceItems.ts</code>.</td></tr>
+          <tr><td><code>data/daily_reflections.tsv</code></td><td>Learning and change ledger</td><td>Records date, metric snapshot, hypothesis, decision, files changed, verification, and rollback note. This is the core audit trail for self-learning updates.</td></tr>
+          <tr><td><code>data/daily_metrics.json</code></td><td>Summarized behavior metrics</td><td>Produced by <code>scripts/summarize_metrics.py</code> from <code>analytics_events.tsv</code>. Current inspected file contains seeded/system-validation metrics.</td></tr>
+          <tr><td><code>lib/types.ts</code></td><td>Type system</td><td>Defines source types, review statuses, dataset/job/Hugging Face metadata, <code>ContentItem</code>, filters, and coverage summary shapes.</td></tr>
+          <tr><td><code>lib/library.ts</code></td><td>Ranking/search/coverage logic</td><td>Filters reviewed items, sorts featured items, searches text fields, counts sources/themes, computes dataset/job/Hugging Face/editorial metrics.</td></tr>
+          <tr><td><code>lib/reviewQueue*.ts</code></td><td>Queue parser and summary</td><td>Parses TSV with Zod validation, detects duplicate candidate IDs, summarizes candidate statuses and stale candidates.</td></tr>
+          <tr><td><code>lib/analytics*.ts</code></td><td>Analytics schema and local TSV store</td><td>Defines event types and summarization, plus append/read functions for <code>analytics_events.tsv</code>. This store requires a server/runtime to append events.</td></tr>
+          <tr><td><code>scripts/*.py</code></td><td>Discovery and metrics scripts</td><td>Fetch GitHub, arXiv, Hugging Face datasets/models/papers, Kaggle, and manual jobs into review queues or JSON output; summarize analytics metrics.</td></tr>
+          <tr><td><code>tests/*.test.ts</code></td><td>Regression guardrails</td><td>Check library behavior, review-queue validation, analytics summaries, datasets/jobs/Hugging Face coverage, and required operating files.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="data-model">
+      <h2>5. Data model and editorial constraints</h2>
+      <p>The central object is <code>ContentItem</code> in <code>lib/types.ts</code>. Every published card must contain enough evidence and rights context to satisfy the editorial rule.</p>
+      <pre><code>ContentItem essentials:
+- id
+- sourceType
+- title
+- url
+- publisher
+- publishedAt
+- summary
+- whyItMatters
+- financeUseCase
+- aiTechnique
+- themes[]
+- audience[]
+- maturity
+- score
+- evidenceQuality
+- licenseNote
+- riskOrCaveat
+- reviewStatus
+- readingTimeMinutes
+- optional datasetFields / jobFields / huggingFaceModelFields / huggingFacePaperFields</code></pre>
+      <h3>Current source mix</h3>
+      <table>
+        <thead><tr><th>Source type</th><th>Count</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>GitHub</td><td>4</td><td>Open-source finance AI/tooling repos such as OpenBB, Qlib, FinRL, SEC parsing patterns.</td></tr>
+          <tr><td>arXiv</td><td>2</td><td>Anchor finance LLM papers, including FinGPT and BloombergGPT.</td></tr>
+          <tr><td>News/blog/regulator/SSRN/Reddit/tool</td><td>11 combined</td><td>Adoption, regulation, discussion, and eval infrastructure signals.</td></tr>
+          <tr><td>Datasets / Kaggle / Hugging Face datasets / regulator datasets</td><td>6 visible source-type items; 5 with <code>datasetFields</code></td><td>Public finance/NLP data surfaces and leakage-risk posture.</td></tr>
+          <tr><td>Jobs</td><td>3</td><td>Demand-side intelligence for AI + finance skills and budget-backed workflows.</td></tr>
+          <tr><td>Hugging Face models</td><td>3</td><td>Finance sentiment/model-card monitoring surfaces.</td></tr>
+          <tr><td>Hugging Face papers</td><td>2</td><td>Paper clusters connecting methods, models, datasets, and reproducibility.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Publication rule:</strong> review status must be <code>reviewed</code> or <code>published</code> to pass the <code>reviewed()</code> predicate used by featured and coverage logic. The inspected <code>sourceItems.ts</code> currently has 31 items and all 31 are <code>reviewed</code>.
+      </div>
+    </section>
+
+    <section id="page-generation">
+      <h2>6. How pages are generated</h2>
+      <p>The site uses Next.js App Router pages, but because <code>output: 'export'</code> is enabled, these pages become static HTML during <code>next build</code>. There is no database at request time.</p>
+      <table>
+        <thead><tr><th>Route</th><th>Source inputs</th><th>Generation behavior</th></tr></thead>
+        <tbody>
+          <tr><td><code>/</code></td><td><code>data/sourceItems.ts</code>, <code>data/review_queue.tsv</code></td><td>Imports source items, computes featured items, source counts, themes, review queue summary, editorial metrics, hiring signals, monetization blocks, and newsletter box.</td></tr>
+          <tr><td><code>/datasets/</code></td><td><code>sourceItems</code> filtered by <code>datasetFields</code></td><td>Shows reviewed public finance/NLP datasets and coverage chips such as modalities and NLP use cases.</td></tr>
+          <tr><td><code>/huggingface/</code></td><td><code>sourceItems</code> filtered to Hugging Face datasets/models/papers</td><td>Shows models and papers with coverage summaries for model tasks and finance domains.</td></tr>
+          <tr><td><code>/jobs/</code></td><td><code>sourceItems</code> filtered to <code>sourceType === 'job'</code></td><td>Frames AI + finance jobs as demand-side intelligence and lists skill/finance-domain signals.</td></tr>
+          <tr><td><code>/review/</code></td><td><code>data/review_queue.tsv</code></td><td>Reads candidates at build time, summarizes status counts and stale candidates, and displays unpromoted candidates for editorial review.</td></tr>
+          <tr><td><code>/sponsor/</code></td><td>Static component content</td><td>Supports sponsor/media-kit monetization surface. Paid/sponsored content must remain labeled and must not silently influence editorial ranking.</td></tr>
+        </tbody>
+      </table>
+      <h3>Ranking and search details</h3>
+      <ul>
+        <li><code>getFeaturedItems(items, limit)</code> filters to reviewed/published, sorts by descending <code>score</code>, then descending <code>readingTimeMinutes</code>, then title.</li>
+        <li><code>searchItems()</code> filters by source type and theme, then searches title, publisher, source type, summary, rationale, use case, technique, caveat, themes, audience, and optional job/dataset/Hugging Face metadata fields.</li>
+        <li><code>getEditorialMetrics()</code> computes reviewed coverage, rights-safe item count, high-evidence count, source diversity, coverage gaps, queue size, stale candidates, dataset coverage, jobs coverage, and Hugging Face coverage.</li>
+      </ul>
+      <p>The page-generation pipeline is deterministic: modify source files, run build, and the output changes. There is no remote CMS, database, server component mutation, or live ingestion at page-request time.</p>
+    </section>
+
+    <section id="refresh-loop">
+      <h2>7. Daily refresh loop</h2>
+      <p>The daily refresh is orchestrated by Hermes cron jobs rather than GitHub Actions. The scheduler currently has two Finance AI Radar jobs, both enabled, both running in the project workdir, both using the <code>test-driven-development</code> and <code>systematic-debugging</code> skills, and both limited to terminal/file/web toolsets.</p>
+      <table>
+        <thead><tr><th>Time</th><th>Job</th><th>Purpose</th><th>Side effects</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>03:00 SGT</code></td>
+            <td><code>Finance AI Radar daily 3am SGT review</code><br><code>job_id: 99ccbc9e3d3b</code></td>
+            <td>Review yesterday's metrics, review queue, source ledger, source items, and public site. Produce a concise implementation brief for the 05:00 agent: highest-value improvement, rationale, acceptance tests, rollback note, and rights/license caveats.</td>
+            <td>May update <code>AGENTS.md</code> Current Learning / Experiment Backlog and <code>data/daily_reflections.tsv</code> if evidence supports it. It must not publish unreviewed content.</td>
+          </tr>
+          <tr>
+            <td><code>05:00 SGT</code></td>
+            <td><code>Finance AI Radar daily 5am SGT update and deploy</code><br><code>job_id: 07e6aa007bb3</code></td>
+            <td>Make one coherent production update that improves the public site, run verification gates, deploy, then verify live URL.</td>
+            <td>Can edit site files, run tests/typecheck/build, execute deployment helper, push source changes to main and static output to gh-pages.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>05:00 job required process</h3>
+      <ol class="flow">
+        <li>Read <code>AGENTS.md</code> and the latest <code>data/daily_reflections.tsv</code> entry/review notes.</li>
+        <li>Make one coherent, evidence-backed update. Allowed categories include reviewed sources, public-domain/NLP datasets, Hugging Face finance models/papers, AI + finance jobs intelligence, sponsor/media-kit surface, quality console, or production reliability.</li>
+        <li>Respect the editorial rule: every published item needs a source link, finance use case, why it matters, caveat, license/rights note, and review status.</li>
+        <li>Run <code>npm test</code>, <code>npm run typecheck</code>, and <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code>.</li>
+        <li>Deploy with <code>python3 /Users/nyp/.hermes/scripts/deploy_finance_ai_radar_pages.py</code>.</li>
+        <li>Verify the live URL with an HTTP fetch and report the exact result.</li>
+      </ol>
+      <div class="callout warning">
+        <strong>Subtle timing design:</strong> the 03:00 agent is a review/planning/reflection pass. The 05:00 agent is the production updater/deployer. This reduces the chance that a production agent chooses an impulsive change without prior context, while still allowing it to act independently if the review output is minimal.
+      </div>
+    </section>
+
+    <section id="deployment">
+      <h2>8. Deployment mechanics</h2>
+      <p>Deployment is centralized in <code>/Users/nyp/.hermes/scripts/deploy_finance_ai_radar_pages.py</code>. The helper performs both source synchronization and static-site publishing.</p>
+      <h3>Deployment helper constants</h3>
+      <pre><code>ROOT = /Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar
+PUBLIC_WORKTREE = /tmp/finance-ai-radar-public-sync
+REPO = git@github.com:neoyipeng2018/finance-ai-radar.git
+NEXT_PUBLIC_BASE_PATH = /finance-ai-radar
+EXCLUDES = node_modules, .next, out, .git</code></pre>
+      <h3>Deployment helper sequence</h3>
+      <ol class="flow">
+        <li>Run <code>npm install --include=dev</code> in <code>ROOT</code>. This matters because this environment has npm configured to omit dev dependencies unless explicitly included.</li>
+        <li>Run <code>npm test</code>.</li>
+        <li>Run <code>npm run typecheck</code>.</li>
+        <li>Run <code>npm run build</code> with <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar</code> in the environment.</li>
+        <li>Delete and reclone <code>git@github.com:neoyipeng2018/finance-ai-radar.git</code> into <code>/tmp/finance-ai-radar-public-sync</code>.</li>
+        <li>Remove all files from that cloned worktree except <code>.git</code>.</li>
+        <li>Copy current source files from <code>ROOT</code> into the public worktree, excluding <code>node_modules</code>, <code>.next</code>, <code>out</code>, and <code>.git</code>.</li>
+        <li>Commit source changes with <code>chore: sync daily finance ai radar source</code> if there are changes, then push to <code>origin main</code>.</li>
+        <li>Touch <code>out/.nojekyll</code> to stop GitHub Pages from running Jekyll processing.</li>
+        <li>Remove any stale <code>out/.git</code>, initialize <code>out/</code> as a new <code>gh-pages</code> repo, add remote, commit all static output with <code>deploy: daily finance ai radar static site</code>, then force-push <code>origin gh-pages</code>.</li>
+        <li>Print <code>Finance AI Radar deployed: https://neoyipeng2018.github.io/finance-ai-radar/ (source_changed=...)</code>.</li>
+      </ol>
+      <h3>Why the base path is non-negotiable</h3>
+      <p>The public site is served from a project page path, not the domain root. Therefore the correct production build must use <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar</code>. The Next config maps this to both <code>basePath</code> and <code>assetPrefix</code>. Building without that environment variable may make local export look fine but will break asset and route references when hosted under <code>/finance-ai-radar/</code>.</p>
+      <div class="callout danger">
+        <strong>Force-push warning:</strong> the helper always reinitializes <code>out/</code> and force-pushes <code>gh-pages</code>. This is normal for static deploys but means <code>gh-pages</code> history is disposable and must not be used as the source of truth.
+      </div>
+    </section>
+
+    <section id="self-learning">
+      <h2>9. Self-learning and feedback system</h2>
+      <p>The self-learning loop is not an online model that trains weights. It is an <strong>agentic editorial/product learning loop</strong>: collect or summarize signals, form a hypothesis, make a small production change, verify it, record the rationale/rollback note, and let future agents read that ledger before acting.</p>
+      <h3>Learning memory surfaces</h3>
+      <table>
+        <thead><tr><th>Surface</th><th>What it stores</th><th>How future updates use it</th></tr></thead>
+        <tbody>
+          <tr><td><code>AGENTS.md</code></td><td>Mission, editorial rule, current learning, ranking heuristics, dataset/Hugging Face/jobs priorities, daily loop rules, experiment backlog.</td><td>Both daily cron agents are prompted to read this first. It acts as the durable operating policy.</td></tr>
+          <tr><td><code>data/daily_reflections.tsv</code></td><td>Hypotheses, decisions, files changed, verification results, rollback notes.</td><td>The 05:00 agent reads the latest reflection before deciding the next coherent update. This creates a human-auditable experiment ledger.</td></tr>
+          <tr><td><code>data/daily_metrics.json</code></td><td>Summarized user behavior such as sessions, source clicks, top items/source types/themes/jobs, average scroll depth, high-intent paths.</td><td>The 03:00 agent reviews it to identify what users engage with, then can suggest changes or update learning notes.</td></tr>
+          <tr><td><code>data/review_queue.tsv</code></td><td>Candidate sources with license guesses and reviewer notes.</td><td>Agents can mine candidates but must not publish them until they have full editorial fields and reviewed/published status.</td></tr>
+          <tr><td><code>data/source_ledger.tsv</code></td><td>Audit trail for published/reviewed source rationale and rights posture.</td><td>Keeps source decisions explainable outside of TypeScript code.</td></tr>
+          <tr><td>Hermes cron prompts</td><td>Standing instructions about review/update cadence, verification, deployment, rights, and budget.</td><td>Keep daily behavior aligned without needing a human every morning.</td></tr>
+        </tbody>
+      </table>
+      <h3>Self-learning update pattern</h3>
+      <ol class="flow">
+        <li>Measure or inspect behavior/content gaps: review <code>daily_metrics.json</code>, source library coverage, queue candidates, public site UX, and ledgers.</li>
+        <li>Form a concrete hypothesis, e.g. “Hugging Face models and papers deserve first-class coverage because they connect reusable assets, papers, datasets, and community attention.”</li>
+        <li>Implement one coherent change: new page, new source type, new reviewed items, improved metrics surface, production reliability fix, etc.</li>
+        <li>Update typed source data and human ledgers together when publishing content.</li>
+        <li>Run tests/typecheck/build.</li>
+        <li>Record the hypothesis, decision, changed files, verification, and rollback note in <code>daily_reflections.tsv</code>.</li>
+        <li>Deploy and verify the public URL.</li>
+      </ol>
+      <p>The inspected <code>daily_reflections.tsv</code> currently records two learning cycles: initial loop scaffolding and addition of Hugging Face model/paper coverage. <code>AGENTS.md</code> also notes that seeded metrics are only for system validation and warns future agents to wait for real click, dwell, filter, dataset, Hugging Face, job, and sponsor events before changing ranking heuristics.</p>
+    </section>
+
+    <section id="ingestion">
+      <h2>10. Ingestion scripts and candidate flow</h2>
+      <p>Discovery scripts exist, but they are intentionally conservative. Most do <strong>not</strong> directly publish to <code>sourceItems.ts</code>; they append candidates to <code>review_queue.tsv</code> or print candidate JSON for human/agent review.</p>
+      <table>
+        <thead><tr><th>Script</th><th>Input/query source</th><th>Output</th><th>Important caveat</th></tr></thead>
+        <tbody>
+          <tr><td><code>scripts/ingest_github.py</code></td><td>GitHub Search API queries for AI finance repos, LLM investment research, SEC filings LLM, portfolio ML.</td><td>Prints JSON rows with source type, title, URL, publisher, summary, health score, license note, human review flag.</td><td>Does not append to queue itself. Uses optional <code>GITHUB_TOKEN</code>. Health score is a rough discovery signal, not editorial score.</td></tr>
+          <tr><td><code>scripts/ingest_arxiv.py</code></td><td>arXiv API terms for LLM finance, LLM portfolio, agent financial, ML credit risk.</td><td>Prints de-duplicated JSON rows with title, URL, summary, license note, human review flag.</td><td>Contains a title compaction bug/quirk: <code>''.join(title.split())</code> removes spaces in titles.</td></tr>
+          <tr><td><code>scripts/ingest_hf_datasets.py</code></td><td>Hugging Face datasets API queries: finance NLP, financial sentiment, SEC filings, financial QA, earnings call.</td><td>Appends new candidate rows to <code>data/review_queue.tsv</code>.</td><td>Candidate IDs are derived from dataset IDs; license is guessed from card data or requires checking.</td></tr>
+          <tr><td><code>scripts/ingest_hf_models.py</code></td><td>Hugging Face models API queries: FinBERT, finance sentiment, financial embedding, SEC filings, financial NLP.</td><td>Appends model candidates to review queue.</td><td>Requires model-card, task-fit, finance-adaptation, benchmark, license, and deployment-risk review.</td></tr>
+          <tr><td><code>scripts/ingest_hf_papers.py</code></td><td>Hugging Face daily papers API queries: FinGPT, financial sentiment, finance LLM, financial QA, FinBERT.</td><td>Appends paper candidates to review queue.</td><td>Needs linked model/dataset/reproducibility and claim review before promotion.</td></tr>
+          <tr><td><code>scripts/ingest_kaggle.py</code></td><td>Kaggle CLI dataset searches for finance NLP/social/credit/fraud/transcripts.</td><td>Appends Kaggle candidates to review queue.</td><td>No-op/skip if Kaggle CLI/auth is unavailable. License/provenance/leakage review is mandatory.</td></tr>
+          <tr><td><code>scripts/ingest_jobs.py</code></td><td>Manual CSV at <code>data/job_candidates_manual.csv</code>.</td><td>Appends normalized rows to <code>data/jobs_ledger.tsv</code>.</td><td>If the manual CSV does not exist, it prints “No manual job candidate CSV found; no-op.”</td></tr>
+          <tr><td><code>scripts/summarize_metrics.py</code></td><td><code>data/analytics_events.tsv</code>.</td><td>Writes <code>data/daily_metrics.json</code>.</td><td>Only as good as analytics-event capture; current static deployment limits live capture unless an external endpoint is configured.</td></tr>
+        </tbody>
+      </table>
+      <h3>Candidate-to-publication path</h3>
+      <ol class="flow">
+        <li>A script or human adds a row to <code>review_queue.tsv</code> with <code>status: candidate</code> or <code>triaged</code>.</li>
+        <li>The review page displays the queue and status summary at build time.</li>
+        <li>An agent/human reviews the original source, license, rights, relevance, caveats, and finance use case.</li>
+        <li>If publication-worthy, the item is manually promoted to a full <code>ContentItem</code> in <code>data/sourceItems.ts</code> with complete required fields and optional metadata objects.</li>
+        <li>The source is also recorded in <code>data/source_ledger.tsv</code> for human auditability.</li>
+        <li>Tests/typecheck/build verify the new type/source/coverage behavior.</li>
+      </ol>
+    </section>
+
+    <section id="analytics">
+      <h2>11. Analytics reality and limitations</h2>
+      <p>The codebase contains a first-party analytics system, but the production deployment is static GitHub Pages. That creates an important mismatch.</p>
+      <h3>What the code supports</h3>
+      <ul>
+        <li><code>AnalyticsTracker</code> runs client-side on every page via <code>app/layout.tsx</code>.</li>
+        <li>It sends <code>page_view</code> on mount and <code>session_end</code> with dwell time and scroll depth on unload.</li>
+        <li><code>TrackedSourceLink</code> sends <code>source_click</code> or <code>job_click</code>.</li>
+        <li><code>sendAnalyticsEvent()</code> only sends if <code>NEXT_PUBLIC_ANALYTICS_ENDPOINT</code> is set.</li>
+        <li><code>app/api/events/route.ts</code> can validate and append events to <code>data/analytics_events.tsv</code> in a server-capable Next runtime.</li>
+        <li><code>summarize_metrics.py</code> converts TSV events into <code>daily_metrics.json</code>.</li>
+      </ul>
+      <h3>What GitHub Pages changes</h3>
+      <div class="callout danger">
+        <strong>Static export limitation:</strong> GitHub Pages cannot run <code>app/api/events/route.ts</code>. With <code>output: 'export'</code>, the public site is static. Therefore live first-party analytics will not append to local TSV through that route unless events are sent to an external endpoint or a different hosting/runtime is introduced.
+      </div>
+      <p>At inspection time, <code>data/daily_metrics.json</code> contains a small seeded/system-validation snapshot: 2 sessions, 1 source click on <code>dataset-sec-edgar</code>, top source type <code>dataset</code>, top theme <code>Public-domain finance text</code>, one top job entry, average scroll depth 40, and no high-intent paths. <code>AGENTS.md</code> explicitly warns not to overfit ranking heuristics to these seeded metrics.</p>
+      <h3>Implication for self-learning</h3>
+      <p>Until a real analytics endpoint exists, the strongest learning signals are curated source reviews, ledgers, public-site inspection, review queue quality, and human/agent reflection. The analytics schema is valuable scaffolding but not yet a complete production feedback loop on GitHub Pages.</p>
+    </section>
+
+    <section id="verification">
+      <h2>12. Verification gates</h2>
+      <p>The repo expects concrete verification before deployment. The standard local gates are:</p>
+      <pre><code>npm test
+npm run typecheck
+NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code></pre>
+      <p>The deployment helper also runs:</p>
+      <pre><code>npm install --include=dev
+npm test
+npm run typecheck
+npm run build   # with NEXT_PUBLIC_BASE_PATH=/finance-ai-radar in env</code></pre>
+      <p>Tests cover the following areas:</p>
+      <ul>
+        <li><strong>Library logic:</strong> source counts, theme briefs, featured sorting, search behavior, editorial metrics.</li>
+        <li><strong>Review queue:</strong> TSV parsing, duplicate candidate detection, publishable status, stale-candidate summary.</li>
+        <li><strong>Analytics:</strong> event schema validation, click/theme/job/dwell/scroll summaries.</li>
+        <li><strong>Datasets/jobs/Hugging Face:</strong> minimum source coverage, metadata fields, labels, searchability.</li>
+        <li><strong>Operating files:</strong> required scripts and ledgers exist.</li>
+      </ul>
+      <div class="callout">
+        <strong>Deployment verification requirement:</strong> the 05:00 cron prompt requires an HTTP fetch of the live URL after deployment and an exact report of the result. If deployment fails, the agent must leave a rollback note and must not claim success.
+      </div>
+    </section>
+
+    <section id="pitfalls">
+      <h2>13. Known pitfalls and intricacies</h2>
+      <table>
+        <thead><tr><th>Pitfall</th><th>Why it matters</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Base path omitted during build</td><td>Assets/routes can break under <code>/finance-ai-radar/</code>.</td><td>Always build/deploy with <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar</code>.</td></tr>
+          <tr><td>Static export versus API route</td><td><code>app/api/events/route.ts</code> cannot run on GitHub Pages.</td><td>Use an external analytics collector or move hosting to a runtime-capable platform if live first-party analytics matter.</td></tr>
+          <tr><td>Local source sits inside another git repo</td><td><code>git status</code> in the project resolves to <code>my_life</code>, not the public standalone repo.</td><td>Use the deployment helper for public-source sync; do not assume local git remote equals production repo.</td></tr>
+          <tr><td><code>out/</code> has disposable git state</td><td>The helper removes/reinitializes <code>out/.git</code> and force-pushes <code>gh-pages</code>.</td><td>Treat <code>main</code> source and local project files as truth; treat <code>gh-pages</code> as generated artifact.</td></tr>
+          <tr><td>npm omits dev dependencies by default in this environment</td><td>Tests/typecheck/build can fail if dev dependencies are missing.</td><td>Run <code>npm install --include=dev</code>.</td></tr>
+          <tr><td>Queue candidates are not full published content</td><td>They lack complete editorial fields and may have only guessed licenses.</td><td>Promote manually after review into <code>sourceItems.ts</code> and <code>source_ledger.tsv</code>.</td></tr>
+          <tr><td>Seeded metrics can mislead ranking changes</td><td>Current metrics are for validation, not real behavior optimization.</td><td>Follow <code>AGENTS.md</code>: wait for real click/dwell/filter/dataset/HF/job/sponsor events before changing heuristics.</td></tr>
+          <tr><td>Rights-sensitive finance material</td><td>Broker research, NDA notes, and expert-call content can create copyright/confidentiality risk.</td><td>Publish metadata and original commentary only unless rights are explicit; label paid/sponsored content.</td></tr>
+          <tr><td>Ingestion scripts can discover noisy sources</td><td>GitHub/HF/Kaggle search results are not editorially verified.</td><td>Keep discovery separate from publication; preserve human review required flags and caveat fields.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="operator-playbook">
+      <h2>14. Operator playbook</h2>
+      <h3>Make a normal content/product update</h3>
+      <ol class="flow">
+        <li>Read <code>AGENTS.md</code>, latest <code>daily_reflections.tsv</code>, and relevant candidates/ledgers.</li>
+        <li>Choose one coherent change. Avoid mixing unrelated content, design, analytics, and deployment changes in one cycle.</li>
+        <li>If publishing a source, ensure complete <code>ContentItem</code> fields: source link, finance use case, why it matters, caveat, license/rights note, review status.</li>
+        <li>Update <code>sourceItems.ts</code> and <code>source_ledger.tsv</code> together. If the change is learning-related, update <code>daily_reflections.tsv</code>.</li>
+        <li>Add/update tests if new source types, fields, metrics, or rendering logic are introduced.</li>
+        <li>Run <code>npm test</code>, <code>npm run typecheck</code>, and <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code>.</li>
+        <li>Deploy with <code>python3 /Users/nyp/.hermes/scripts/deploy_finance_ai_radar_pages.py</code>.</li>
+        <li>Fetch <code>https://neoyipeng2018.github.io/finance-ai-radar/</code> and verify HTTP success and visible expected content.</li>
+      </ol>
+      <h3>Promote a queued item</h3>
+      <ol class="flow">
+        <li>Inspect original source URL and rights/license terms.</li>
+        <li>Determine source type, evidence quality, maturity, themes, audience, score, and reading time.</li>
+        <li>Write original summary/rationale/caveat; do not copy proprietary or lengthy source text.</li>
+        <li>Add optional metadata object when applicable: <code>datasetFields</code>, <code>jobFields</code>, <code>huggingFaceModelFields</code>, or <code>huggingFacePaperFields</code>.</li>
+        <li>Set <code>reviewStatus: 'reviewed'</code> only after all mandatory fields are complete.</li>
+        <li>Record the item in <code>source_ledger.tsv</code>.</li>
+      </ol>
+      <h3>Improve the self-learning system</h3>
+      <ul>
+        <li>First priority: connect real analytics. Since GitHub Pages cannot receive <code>/api/events</code>, add a zero/low-cost external endpoint or change hosting for analytics only.</li>
+        <li>Second priority: make daily metrics generation part of the cron process if real events arrive outside the repo.</li>
+        <li>Third priority: keep the reflection ledger unified and human-auditable. Do not split hypotheses and outcomes into disconnected files.</li>
+        <li>Fourth priority: preserve rights safety. The site’s moat is signal and auditability, not scraping proprietary finance content.</li>
+      </ul>
+    </section>
+
+    <section id="appendix">
+      <h2>15. Appendix: exact cron prompts distilled</h2>
+      <h3>03:00 review agent distilled prompt</h3>
+      <p>Work in the finance-ai-radar directory. Review yesterday’s metrics, review queue, source ledger, source items, and public site. Produce a concise brief for the 05:00 update agent: highest-value improvement, rationale, acceptance tests, rollback note, rights/license caveats. May update <code>AGENTS.md</code> and <code>daily_reflections.tsv</code>. Do not publish unreviewed content. Run verification if files are edited.</p>
+      <h3>05:00 production agent distilled prompt</h3>
+      <p>Read <code>AGENTS.md</code> and latest reflections. Make one coherent evidence-backed site improvement. Respect editorial and rights rules. Run <code>npm test</code>, <code>npm run typecheck</code>, <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code>. Deploy with the helper. Verify live URL by HTTP fetch. Prefer zero/low-cost self-serve improvements; current hosting is GitHub Pages at $0/month.</p>
+      <p class="small">End of research document.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@next/third-parties": "latest",
     "next": "^16.2.7",
     "react": "^19.2.7",

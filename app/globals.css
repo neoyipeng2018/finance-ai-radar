@@ -85,9 +85,9 @@ h1 { margin: 14px 0 18px; max-width: 820px; font-size: clamp(44px, 7vw, 86px); l
 .input, .select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; color: var(--text); background: rgba(3, 9, 18, .8); outline: none; }
 .input:focus, .select:focus { border-color: rgba(116,247,209,.7); }
 .library-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.theme-card, .moat-card, .metric-card { border: 1px solid var(--line); border-radius: 22px; padding: 18px; background: rgba(255,255,255,.035); }
-.theme-card strong { display: block; font-size: 19px; margin-bottom: 6px; }
-.theme-card span, .moat-card p, .metric-card p { color: var(--muted); }
+.theme-card, .moat-card, .metric-card, .empty-state { border: 1px solid var(--line); border-radius: 22px; padding: 18px; background: rgba(255,255,255,.035); }
+.theme-card strong, .empty-state strong { display: block; font-size: 19px; margin-bottom: 6px; }
+.theme-card span, .moat-card p, .metric-card p, .empty-state span { color: var(--muted); }
 .metric-card span { color: var(--muted); font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
 .metric-card strong { display: block; margin: 8px 0; color: var(--cyan); font-size: 38px; line-height: 1; letter-spacing: -.06em; }
 .quality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
@@ -96,6 +96,8 @@ h1 { margin: 14px 0 18px; max-width: 820px; font-size: clamp(44px, 7vw, 86px); l
 .newsletter input { min-height: 52px; border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; color: var(--text); background: rgba(3, 9, 18, .74); }
 .newsletter button { border: 0; border-radius: 16px; padding: 0 18px; font-weight: 900; color: #06101b; background: var(--cyan); }
 .footer { margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.section-note { color: var(--muted); margin: 14px 0 0; }
+.section-note a { color: var(--cyan); font-weight: 800; }
 
 @media (max-width: 940px) {
   .hero, .library-list, .filters, .grid.three, .grid.four, .quality-grid { grid-template-columns: 1fr; }

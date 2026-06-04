@@ -9,7 +9,7 @@ export const ReviewCandidateSchema = z.object({
   publisher: z.string().min(2),
   discoveredAt: z.string().min(10),
   relevanceReason: z.string().min(20),
-  licenseGuess: z.string().min(4),
+  licenseGuess: z.string().min(3),
   status: z.enum(['candidate', 'triaged', 'reviewed', 'published', 'rejected']),
   reviewerNotes: z.string(),
 });

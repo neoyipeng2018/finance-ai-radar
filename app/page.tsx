@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Hero } from '../components/Hero';
 import { ContentCard } from '../components/ContentCard';
 import { EditorialMetrics } from '../components/EditorialMetrics';
+import { FreshThisMonth } from '../components/FreshThisMonth';
 import { HiringSignals } from '../components/HiringSignals';
 import { LibraryExplorer } from '../components/LibraryExplorer';
 import { Monetization } from '../components/Monetization';
@@ -9,7 +10,7 @@ import { NewsletterBox } from '../components/NewsletterBox';
 import { ThemeGrid } from '../components/ThemeGrid';
 import { sourceItems } from '../data/sourceItems';
 import { getReviewCandidates, reviewQueueSummary } from '../lib/reviewQueueStore';
-import { getAllThemes, getEditorialMetrics, getFeaturedItems, getSourceCounts, getThemeBriefs } from '../lib/library';
+import { getAllThemes, getEditorialMetrics, getFeaturedItems, getSourceCounts, getThemeBriefs, searchItems } from '../lib/library';
 
 export default function Home() {
   const featured = getFeaturedItems(sourceItems, 6);
@@ -17,6 +18,7 @@ export default function Home() {
   const themes = getThemeBriefs(sourceItems);
   const queue = reviewQueueSummary(getReviewCandidates());
   const editorialMetrics = getEditorialMetrics(sourceItems, queue);
+  const freshThisMonth = searchItems(sourceItems, { query: '', sourceType: 'all', theme: 'all', dateWindow: 'month' }).slice(0, 6);
   const reviewedItems = sourceItems.filter((item) => item.reviewStatus === 'reviewed').length;
 
   return (
@@ -49,6 +51,8 @@ export default function Home() {
           {featured.map((item, index) => <ContentCard item={item} key={item.id} rankPosition={index + 1} />)}
         </div>
       </section>
+
+      <FreshThisMonth items={freshThisMonth} />
 
       <LibraryExplorer items={sourceItems} />
       <EditorialMetrics metrics={editorialMetrics} />

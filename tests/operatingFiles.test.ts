@@ -22,10 +22,15 @@ describe('closed-loop operating files', () => {
       'scripts/ingest_kaggle.py',
       'scripts/ingest_jobs.py',
       'scripts/summarize_metrics.py',
+      'scripts/drain_review_queue.py',
       'data/review_queue.tsv',
+      'data/review_archive.tsv',
       'data/jobs_ledger.tsv',
       'data/analytics_events.tsv',
       'data/daily_reflections.tsv',
+      'db/analytics_events.sql',
+      'DEPLOYMENT.md',
+      'vercel.json',
     ];
 
     expect(requiredPaths.every((path) => existsSync(join(root, path)))).toBe(true);

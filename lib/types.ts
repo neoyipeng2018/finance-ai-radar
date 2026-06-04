@@ -87,10 +87,14 @@ export type ContentItem = {
   huggingFacePaperFields?: HuggingFacePaperMetadata;
 };
 
+export type DateWindow = '7d' | 'week' | 'month' | 'year' | 'all' | 'custom';
+
 export type SearchFilters = {
   query: string;
   sourceType: SourceType | 'all';
   theme: string | 'all';
+  dateWindow: DateWindow;
+  customDays?: number;
 };
 
 export type ThemeBrief = {

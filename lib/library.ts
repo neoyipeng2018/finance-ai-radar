@@ -1,4 +1,4 @@
-import type { ContentItem, DatasetCoverage, EditorialMetrics, HuggingFaceCoverage, JobsCoverage, SearchFilters, SourceType, ThemeBrief } from './types';
+import type { ContentItem, DatasetCoverage, DateWindow, EditorialMetrics, HuggingFaceCoverage, JobsCoverage, SearchFilters, SourceType, ThemeBrief } from './types';
 import type { ReviewQueueSummary } from './reviewQueue';
 
 const sourceOrder: SourceType[] = ['github', 'arxiv', 'ssrn', 'reddit', 'news', 'blog', 'broker', 'expert_call', 'dataset', 'kaggle', 'huggingface_dataset', 'huggingface_model', 'huggingface_paper', 'regulator', 'job', 'tool'];
@@ -7,19 +7,42 @@ function reviewed(item: ContentItem): boolean {
   return item.reviewStatus === 'reviewed' || item.reviewStatus === 'published';
 }
 
-export function getFeaturedItems(items: ContentItem[], limit: number): ContentItem[] {
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const FEATURED_RECENCY_DAYS = 30;
+
+export function daysForWindow(dateWindow: DateWindow, customDays?: number): number | null {
+  if (dateWindow === 'all') return null;
+  if (dateWindow === '7d' || dateWindow === 'week') return 7;
+  if (dateWindow === 'month') return 30;
+  if (dateWindow === 'year') return 365;
+  const value = Math.floor(customDays ?? 30);
+  return Math.min(3650, Math.max(1, value));
+}
+
+export function isWithinDateWindow(publishedAt: string, dateWindow: DateWindow, customDays?: number, now = new Date()): boolean {
+  const days = daysForWindow(dateWindow, customDays);
+  if (days === null) return true;
+  const published = new Date(`${publishedAt}T00:00:00.000Z`);
+  if (Number.isNaN(published.getTime())) return false;
+  const ageDays = Math.floor((now.getTime() - published.getTime()) / MS_PER_DAY);
+  return ageDays >= 0 && ageDays <= days;
+}
+
+export function getFeaturedItems(items: ContentItem[], limit: number, now = new Date()): ContentItem[] {
   return [...items]
     .filter(reviewed)
+    .filter((item) => isWithinDateWindow(item.publishedAt, 'custom', FEATURED_RECENCY_DAYS, now))
     .sort((a, b) => b.score - a.score || b.readingTimeMinutes - a.readingTimeMinutes || a.title.localeCompare(b.title))
     .slice(0, limit);
 }
 
-export function searchItems(items: ContentItem[], filters: SearchFilters): ContentItem[] {
+export function searchItems(items: ContentItem[], filters: SearchFilters, now = new Date()): ContentItem[] {
   const query = filters.query.trim().toLowerCase();
 
   return items
     .filter((item) => filters.sourceType === 'all' || item.sourceType === filters.sourceType)
     .filter((item) => filters.theme === 'all' || item.themes.includes(filters.theme))
+    .filter((item) => isWithinDateWindow(item.publishedAt, filters.dateWindow, filters.customDays, now))
     .filter((item) => {
       if (!query) return true;
       const jobFields = item.jobFields ? [item.jobFields.company, item.jobFields.roleFamily, item.jobFields.location, item.jobFields.financeDomain, ...item.jobFields.skills] : [];

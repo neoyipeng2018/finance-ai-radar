@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance AI Radar — Queue Drain, Live Metrics Hosting, and Freshness Filters Plan</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071018;
+      --panel: #101b29;
+      --panel-2: #14263a;
+      --text: #eaf4ff;
+      --muted: #9db1c8;
+      --line: #29415a;
+      --accent: #67e8f9;
+      --accent-2: #a7f3d0;
+      --warn: #fbbf24;
+      --danger: #fb7185;
+      --code: #06111d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.62;
+      color: var(--text);
+      background: radial-gradient(circle at top left, rgba(103,232,249,.16), transparent 36rem), radial-gradient(circle at 80% 20%, rgba(167,243,208,.08), transparent 24rem), var(--bg);
+    }
+    .shell { max-width: 1200px; margin: 0 auto; padding: 46px 24px 90px; }
+    header.hero { border: 1px solid var(--line); border-radius: 30px; background: linear-gradient(135deg, rgba(16,27,41,.96), rgba(20,38,58,.82)); padding: 42px; box-shadow: 0 26px 90px rgba(0,0,0,.32); }
+    h1 { font-size: clamp(36px, 6vw, 68px); line-height: 1.02; margin: 14px 0 20px; }
+    h2 { font-size: 30px; margin: 46px 0 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+    h3 { font-size: 22px; margin: 28px 0 10px; }
+    h4 { color: var(--accent-2); margin: 22px 0 8px; }
+    p, li, td { color: var(--muted); }
+    strong, th { color: var(--text); }
+    a { color: var(--accent); }
+    .lead { font-size: 20px; color: #d9e9fb; max-width: 940px; }
+    .eyebrow { color: var(--accent-2); font-size: 12px; letter-spacing: .13em; text-transform: uppercase; font-weight: 900; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 16px; margin: 24px 0; }
+    .card, .callout { border: 1px solid var(--line); background: rgba(16,27,41,.78); border-radius: 18px; padding: 20px; }
+    .metric strong { display: block; font-size: 30px; color: var(--accent); }
+    .callout { border-left: 4px solid var(--accent); }
+    .warning { border-left-color: var(--warn); }
+    .danger { border-left-color: var(--danger); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    code { background: var(--code); color: #e0f2fe; padding: 2px 6px; border-radius: 6px; }
+    pre { background: var(--code); color: #dbeafe; border: 1px solid var(--line); border-radius: 16px; overflow: auto; padding: 18px; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0 26px; border-radius: 16px; overflow: hidden; }
+    th, td { border: 1px solid var(--line); padding: 11px 12px; vertical-align: top; text-align: left; }
+    th { background: rgba(103,232,249,.1); }
+    td { background: rgba(16,27,41,.46); }
+    .toc { columns: 2; column-gap: 40px; }
+    .toc li { break-inside: avoid; margin-bottom: 6px; }
+    .task { border: 1px solid var(--line); border-radius: 20px; padding: 20px; margin: 18px 0; background: rgba(20,38,58,.45); }
+    .status { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--accent-2); font-size: 12px; font-weight: 800; }
+    .checklist li { margin-bottom: 7px; }
+    .small { font-size: 13px; color: #8da4bd; }
+    @media (max-width: 760px) { .toc { columns: 1; } header.hero { padding: 26px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="eyebrow">Implementation plan · do not execute from this document blindly</div>
+      <h1>Queue drain, live self-learning hosting, and freshness filters for Finance AI Radar</h1>
+      <p class="lead"><strong>Goal:</strong> keep Finance AI Radar current and self-improving by adding a post-deploy queue-drain job, moving the live site to a hosting/runtime path that records first-party metrics, and adding user-facing freshness filters for past X days / week / month / year / all time.</p>
+      <p><strong>Architecture:</strong> keep the current Next.js App Router code, add a small queue-drain script plus Hermes cron job after the 05:00 SGT deploy, migrate production hosting from static-only GitHub Pages to a runtime-capable low-cost host, and extend the typed filter model to include date windows. Preserve GitHub Pages as an optional static mirror if useful, but make the runtime host canonical for learning.</p>
+      <p><strong>Tech stack:</strong> Next.js 16, React 19, TypeScript, Vitest, Zod, TSV/JSON ledgers, Hermes cron, Vercel or Cloudflare Pages/Workers runtime, first-party analytics route.</p>
+    </header>
+
+    <section id="summary">
+      <h2>1. Executive summary</h2>
+      <div class="grid">
+        <article class="card metric"><strong>After 05:00</strong><span>Add a dedicated queue-drain cron at 05:45 SGT, after update/deploy succeeds.</span></article>
+        <article class="card metric"><strong>Runtime host</strong><span>Canonical production should move off static-only GitHub Pages if first-party analytics matter.</span></article>
+        <article class="card metric"><strong>Date filter</strong><span>Add freshness windows: 7d, week, month, year, all-time, plus configurable past X days.</span></article>
+        <article class="card metric"><strong>Auditability</strong><span>Every queue-drain action writes a TSV ledger row and never silently deletes evidence.</span></article>
+      </div>
+      <div class="callout danger">
+        <strong>Core diagnosis:</strong> GitHub Pages static export cannot run <code>app/api/events/route.ts</code>. If production remains static-only, <code>NEXT_PUBLIC_ANALYTICS_ENDPOINT</code> must point to an external collector, or the self-learning loop lacks real live behavior metrics. The better long-term fix is a runtime-capable canonical host.
+      </div>
+    </section>
+
+    <section id="toc">
+      <h2>2. Table of contents</h2>
+      <ol class="toc">
+        <li><a href="#decisions">Recommended decisions</a></li>
+        <li><a href="#queue-drain">Part 1: queue-drain job after 05:00 SGT</a></li>
+        <li><a href="#hosting">Part 2: runtime hosting for live metrics</a></li>
+        <li><a href="#freshness">Part 3: freshness/date filters</a></li>
+        <li><a href="#schema">Schema and data model changes</a></li>
+        <li><a href="#snippets">Code snippets</a></li>
+        <li><a href="#tests">Testing and verification</a></li>
+        <li><a href="#phases">Detailed phased TODO list</a></li>
+        <li><a href="#acceptance">Acceptance criteria</a></li>
+        <li><a href="#rollback">Rollback plan</a></li>
+      </ol>
+    </section>
+
+    <section id="decisions">
+      <h2>3. Recommended decisions</h2>
+      <table>
+        <thead><tr><th>Problem</th><th>Recommendation</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Queue never drains</td>
+            <td>Add <code>scripts/drain_review_queue.py</code> and a Hermes cron job at <code>45 5 * * *</code>.</td>
+            <td>Separates publication/update from cleanup/archival. Queue drain can be conservative, auditable, and run after deploy so it does not block daily publication.</td>
+          </tr>
+          <tr>
+            <td>Static GitHub Pages cannot collect metrics</td>
+            <td>Make <strong>Vercel</strong> the canonical host first; keep GitHub Pages as optional mirror.</td>
+            <td>Vercel is the lowest-friction path for current Next route handlers. <code>app/api/events/route.ts</code> will run with minimal code changes. Cron/deploy can be GitHub/Vercel-integrated or Hermes-triggered.</td>
+          </tr>
+          <tr>
+            <td>Writing analytics to repo files at runtime is not durable on serverless</td>
+            <td>Move analytics events from local TSV writes to a small hosted data store: Vercel Postgres / Neon / Supabase / Upstash Redis, with a daily export to repo TSV/JSON.</td>
+            <td>Serverless filesystems are ephemeral. Live metrics need a real data store. The repo TSV remains the human-auditable exported ledger.</td>
+          </tr>
+          <tr>
+            <td>Items feel stale</td>
+            <td>Add date-window filter to <code>SearchFilters</code> and <code>LibraryExplorer</code>; optionally show “Fresh this month” above all-time ranking.</td>
+            <td>Users can choose recency without throwing away evergreen sources. It also surfaces whether ingestion is keeping pace.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="queue-drain">
+      <h2>4. Part 1 — Add a post-05:00 SGT queue-drain job</h2>
+      <h3>Design principle</h3>
+      <p>The queue should not be “cleared” by deletion. It should be <strong>drained</strong> by status transitions and archival rows. Deleting candidates destroys provenance and makes it harder to learn which sources were rejected, published, stale, or duplicated.</p>
+      <h3>Desired behavior</h3>
+      <ol>
+        <li>Run after the 05:00 update/deploy job, e.g. <code>05:45 SGT</code>.</li>
+        <li>Read <code>data/review_queue.tsv</code>, <code>data/sourceItems.ts</code>, and <code>data/source_ledger.tsv</code>.</li>
+        <li>Classify rows into:</li>
+        <ul>
+          <li><code>published</code>: candidate ID or URL already appears in <code>sourceItems.ts</code> / <code>source_ledger.tsv</code>.</li>
+          <li><code>rejected</code>: manually rejected rows stay recorded but can be archived.</li>
+          <li><code>stale</code>: candidate/triaged rows older than threshold, e.g. 30 days, that still have no publication decision.</li>
+          <li><code>active</code>: candidate/triaged rows still worth reviewing.</li>
+        </ul>
+        <li>Write drained rows to <code>data/review_archive.tsv</code> with a <code>drained_at</code> timestamp and <code>drain_reason</code>.</li>
+        <li>Rewrite <code>data/review_queue.tsv</code> with header + only active rows.</li>
+        <li>Append a row to <code>data/daily_reflections.tsv</code> summarizing queue size before/after.</li>
+        <li>Run tests/typecheck/build. If successful and source changes exist, deploy or rely on next day's deploy. Recommended: deploy immediately if the public <code>/review</code> page changes.</li>
+      </ol>
+      <div class="callout warning">
+        <strong>Important:</strong> current tests expect at least four queue candidates. The implementation must update tests to reflect archival behavior instead of assuming the queue is perpetually non-empty.
+      </div>
+      <h3>Hermes cron design</h3>
+      <p>Create a new job with <code>cronjob(action='create')</code> or <code>hermes cron create</code>. The prompt should be self-contained because cron sessions start fresh.</p>
+      <pre><code>Schedule: 45 5 * * *
+Name: Finance AI Radar daily 5:45am SGT queue drain
+Workdir: /Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar
+Skills: test-driven-development, systematic-debugging
+Toolsets: terminal, file
+Deliver: local</code></pre>
+      <h4>Proposed cron prompt</h4>
+      <pre><code>You are the Finance AI Radar post-deploy queue-drain agent.
+Work in /Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar.
+Run after the 05:00 SGT production update/deploy job.
+
+Goal: keep data/review_queue.tsv actionable without destroying provenance.
+
+Process:
+1. Read AGENTS.md, data/review_queue.tsv, data/source_ledger.tsv, data/sourceItems.ts, and latest data/daily_reflections.tsv.
+2. Run python3 scripts/drain_review_queue.py --stale-days 30.
+3. Inspect the diff. Ensure only published/rejected/stale/duplicate rows moved to data/review_archive.tsv and active candidates remain.
+4. Run npm test, npm run typecheck, and NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build.
+5. If the queue/review page changed and verification passes, deploy with python3 /Users/nyp/.hermes/scripts/deploy_finance_ai_radar_pages.py or the new runtime deploy command once hosting migrates.
+6. Append a data/daily_reflections.tsv row with queue_before, queue_after, archived_count, verification, and rollback_note.
+7. Do not delete queue evidence; archive it.</code></pre>
+    </section>
+
+    <section id="hosting">
+      <h2>5. Part 2 — Move canonical hosting to keep the self-learning loop alive</h2>
+      <h3>Why GitHub Pages breaks the loop</h3>
+      <p>The current code has <code>app/api/events/route.ts</code>, but GitHub Pages serves static files only. It cannot execute a Next route handler. Therefore browser events from <code>AnalyticsTracker</code> cannot be written to <code>data/analytics_events.tsv</code> on the live site. Without a live event collector, <code>daily_metrics.json</code> remains seeded/manual and the self-learning loop is not behavior-grounded.</p>
+      <h3>Hosting options</h3>
+      <table>
+        <thead><tr><th>Option</th><th>Pros</th><th>Cons</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Vercel + Postgres/Neon</strong></td>
+            <td>Best fit for Next route handlers. Minimal app changes. Good free tier. Easy env vars. Deploy from GitHub.</td>
+            <td>Serverless filesystem is ephemeral; must use DB for analytics. Need Vercel project setup.</td>
+            <td><strong>Recommended first path.</strong></td>
+          </tr>
+          <tr>
+            <td>Cloudflare Pages + Workers + D1</td>
+            <td>Excellent edge/runtime + cheap D1 SQLite. Strong long-term cost profile.</td>
+            <td>Next.js runtime compatibility has more moving parts; likely requires adapter/config changes.</td>
+            <td>Good second path if avoiding Vercel.</td>
+          </tr>
+          <tr>
+            <td>Netlify Functions + Neon/Supabase</td>
+            <td>Simple serverless functions; supports Next.</td>
+            <td>Less direct than Vercel for App Router. Still needs external DB.</td>
+            <td>Acceptable fallback.</td>
+          </tr>
+          <tr>
+            <td>Keep GitHub Pages + external collector only</td>
+            <td>Preserves $0 static host and current deploy flow.</td>
+            <td>Still needs another service for metrics; public canonical site split across static + API.</td>
+            <td>Short-term bridge, not best canonical design.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Recommended Vercel architecture</h3>
+      <pre><code>Browser
+  AnalyticsTracker / TrackedSourceLink
+      │ POST /api/events
+      ▼
+Vercel Next.js runtime
+  app/api/events/route.ts validates event with Zod
+      │ INSERT
+      ▼
+Hosted database
+  analytics_events table
+      │ daily export/summarize
+      ▼
+Hermes 03:00 review job
+  fetches metrics summary endpoint or runs export script
+      │
+      ▼
+data/daily_metrics.json + data/daily_reflections.tsv
+  auditable repo-level learning record</code></pre>
+      <h3>Required hosting changes</h3>
+      <ul>
+        <li>Remove or conditionally disable <code>output: 'export'</code> for runtime hosting.</li>
+        <li>Stop requiring <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar</code> on canonical runtime host. Vercel root path can be <code>/</code>.</li>
+        <li>Keep GitHub Pages build as an optional mirror command if desired.</li>
+        <li>Replace local TSV append in <code>appendAnalyticsEvent()</code> with DB insert for production.</li>
+        <li>Add <code>DATABASE_URL</code> or equivalent env var.</li>
+        <li>Add a daily metrics export route/script that summarizes DB events and writes <code>data/daily_metrics.json</code> for the agent loop.</li>
+      </ul>
+      <div class="callout">
+        <strong>Self-learning preservation rule:</strong> runtime analytics can live in a DB, but the learning decisions should still be exported to repo files: <code>daily_metrics.json</code> and <code>daily_reflections.tsv</code>. That keeps the loop auditable and aligned with the existing design preference for TSV ledgers.
+      </div>
+    </section>
+
+    <section id="freshness">
+      <h2>6. Part 3 — Add freshness/date filters</h2>
+      <h3>User need</h3>
+      <p>Current page items include older evergreen anchors. That is useful for all-time relevance but makes the site feel stale. Add a freshness control so users can choose recent items without removing durable references.</p>
+      <h3>Filter design</h3>
+      <table>
+        <thead><tr><th>Option</th><th>Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Past 7 days</td><td><code>7d</code></td><td>Only items with <code>publishedAt</code> within the last 7 days.</td></tr>
+          <tr><td>Past week</td><td><code>week</code></td><td>Alias for 7 days, or calendar week if later needed. Keep simple as 7 days now.</td></tr>
+          <tr><td>Past month</td><td><code>month</code></td><td>Items within 30 days.</td></tr>
+          <tr><td>Past year</td><td><code>year</code></td><td>Items within 365 days.</td></tr>
+          <tr><td>All time</td><td><code>all</code></td><td>No date filtering.</td></tr>
+          <tr><td>Past X days</td><td><code>custom</code> + number</td><td>User enters <code>customDays</code>, clamped to sensible bounds, e.g. 1–3650.</td></tr>
+        </tbody>
+      </table>
+      <h3>UX placement</h3>
+      <ul>
+        <li>Add a fourth control to <code>LibraryExplorer</code> beside query/source/theme.</li>
+        <li>For custom days, show a compact number input only when <code>dateWindow === 'custom'</code>.</li>
+        <li>Update the results text to include the active freshness window: e.g. “12 curated items after filters · Past month”.</li>
+        <li>Track freshness filter changes in analytics event <code>filter_change</code> with <code>dateWindow</code> and <code>customDays</code>.</li>
+        <li>Consider adding a homepage section above Featured: “Fresh this month” using <code>getFreshItems(sourceItems, 30, 4)</code>.</li>
+      </ul>
+    </section>
+
+    <section id="schema">
+      <h2>7. Schema and data model changes</h2>
+      <h3>Files to modify</h3>
+      <table>
+        <thead><tr><th>File</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td><code>lib/types.ts</code></td><td>Add <code>DateWindow</code> type and extend <code>SearchFilters</code>.</td></tr>
+          <tr><td><code>lib/library.ts</code></td><td>Add date-window helpers and date filtering inside <code>searchItems</code>.</td></tr>
+          <tr><td><code>components/LibraryExplorer.tsx</code></td><td>Add freshness select, optional custom-days input, analytics payload fields.</td></tr>
+          <tr><td><code>lib/analytics.ts</code></td><td>Add optional <code>dateWindow</code> and <code>customDays</code> fields to schema.</td></tr>
+          <tr><td><code>lib/analyticsStore.ts</code></td><td>Add TSV columns for <code>date_window</code> and <code>custom_days</code>.</td></tr>
+          <tr><td><code>tests/library.test.ts</code></td><td>Tests for month/year/all/custom date filtering.</td></tr>
+          <tr><td><code>tests/analytics.test.ts</code></td><td>Tests that filter-change events accept date-window fields.</td></tr>
+          <tr><td><code>tests/reviewQueue.test.ts</code></td><td>Update assumptions after queue archival exists.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="snippets">
+      <h2>8. Code snippets</h2>
+      <h3>8.1 <code>lib/types.ts</code> date-window types</h3>
+      <pre><code>export type DateWindow = '7d' | 'week' | 'month' | 'year' | 'all' | 'custom';
+
+export type SearchFilters = {
+  query: string;
+  sourceType: SourceType | 'all';
+  theme: string | 'all';
+  dateWindow: DateWindow;
+  customDays?: number;
+};</code></pre>
+
+      <h3>8.2 <code>lib/library.ts</code> freshness helpers</h3>
+      <pre><code>import type { ContentItem, DateWindow, SearchFilters } from './types';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export function daysForWindow(dateWindow: DateWindow, customDays?: number): number | null {
+  if (dateWindow === 'all') return null;
+  if (dateWindow === '7d' || dateWindow === 'week') return 7;
+  if (dateWindow === 'month') return 30;
+  if (dateWindow === 'year') return 365;
+  if (dateWindow === 'custom') {
+    const value = Math.floor(customDays ?? 30);
+    return Math.min(3650, Math.max(1, value));
+  }
+  return null;
+}
+
+export function isWithinDateWindow(publishedAt: string, dateWindow: DateWindow, customDays: number | undefined, now = new Date()): boolean {
+  const days = daysForWindow(dateWindow, customDays);
+  if (days === null) return true;
+  const published = new Date(`${publishedAt}T00:00:00.000Z`);
+  if (Number.isNaN(published.getTime())) return false;
+  const ageDays = Math.floor((now.getTime() - published.getTime()) / MS_PER_DAY);
+  return ageDays >= 0 && ageDays <= days;
+}
+
+export function searchItems(items: ContentItem[], filters: SearchFilters, now = new Date()): ContentItem[] {
+  const query = filters.query.trim().toLowerCase();
+
+  return items
+    .filter((item) => filters.sourceType === 'all' || item.sourceType === filters.sourceType)
+    .filter((item) => filters.theme === 'all' || item.themes.includes(filters.theme))
+    .filter((item) => isWithinDateWindow(item.publishedAt, filters.dateWindow, filters.customDays, now))
+    .filter((item) => {
+      if (!query) return true;
+      // existing searchable-field logic stays here
+      return searchable.includes(query);
+    })
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+}</code></pre>
+      <p class="small">When implementing, merge this carefully into the existing <code>searchItems()</code> body rather than replacing the searchable-field code with a dangling <code>searchable</code> variable.</p>
+
+      <h3>8.3 <code>components/LibraryExplorer.tsx</code> freshness controls</h3>
+      <pre><code>import type { ContentItem, DateWindow, SourceType } from '../lib/types';
+
+const dateWindows: Array&lt;{ value: DateWindow; label: string }&gt; = [
+  { value: 'month', label: 'Past month' },
+  { value: '7d', label: 'Past 7 days' },
+  { value: 'week', label: 'Past week' },
+  { value: 'year', label: 'Past year' },
+  { value: 'all', label: 'All time' },
+  { value: 'custom', label: 'Past X days' },
+];
+
+export function LibraryExplorer({ items }: { items: ContentItem[] }) {
+  const [query, setQuery] = useState('');
+  const [sourceType, setSourceType] = useState&lt;SourceType | 'all'&gt;('all');
+  const [theme, setTheme] = useState&lt;string | 'all'&gt;('all');
+  const [dateWindow, setDateWindow] = useState&lt;DateWindow&gt;('month');
+  const [customDays, setCustomDays] = useState(30);
+
+  const results = useMemo(
+    () => searchItems(items, { query, sourceType, theme, dateWindow, customDays }),
+    [items, query, sourceType, theme, dateWindow, customDays]
+  );
+
+  return (
+    &lt;div className="filters"&gt;
+      {/* existing input/source/theme controls */}
+      &lt;select
+        className="select"
+        value={dateWindow}
+        onChange={(event) =&gt; {
+          const next = event.target.value as DateWindow;
+          setDateWindow(next);
+          sendAnalyticsEvent({ eventType: 'filter_change', query, sourceType, theme, dateWindow: next, customDays });
+        }}
+      &gt;
+        {dateWindows.map((window) =&gt; &lt;option key={window.value} value={window.value}&gt;{window.label}&lt;/option&gt;)}
+      &lt;/select&gt;
+      {dateWindow === 'custom' ? (
+        &lt;input
+          className="input compact-input"
+          type="number"
+          min={1}
+          max={3650}
+          value={customDays}
+          onChange={(event) =&gt; {
+            const next = Math.min(3650, Math.max(1, Number(event.target.value) || 30));
+            setCustomDays(next);
+            sendAnalyticsEvent({ eventType: 'filter_change', query, sourceType, theme, dateWindow, customDays: next });
+          }}
+        /&gt;
+      ) : null}
+    &lt;/div&gt;
+  );
+}</code></pre>
+
+      <h3>8.4 Analytics schema extension</h3>
+      <pre><code>// lib/analytics.ts
+export const AnalyticsEventSchema = z.object({
+  eventType: z.enum([
+    'page_view',
+    'source_click',
+    'filter_change',
+    'scroll_depth',
+    'session_end',
+    'newsletter_focus',
+    'newsletter_submit',
+    'sponsor_click',
+    'job_click',
+  ]),
+  anonymousId: z.string().min(8),
+  sessionId: z.string().min(8),
+  path: z.string(),
+  itemId: z.string().optional(),
+  sourceType: z.string().optional(),
+  theme: z.string().optional(),
+  query: z.string().optional(),
+  dateWindow: z.enum(['7d', 'week', 'month', 'year', 'all', 'custom']).optional(),
+  customDays: z.number().int().min(1).max(3650).optional(),
+  // existing fields continue...
+});</code></pre>
+
+      <h3>8.5 Queue-drain script</h3>
+      <pre><code># scripts/drain_review_queue.py
+import argparse
+import csv
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+QUEUE = ROOT / 'data' / 'review_queue.tsv'
+ARCHIVE = ROOT / 'data' / 'review_archive.tsv'
+SOURCE_LEDGER = ROOT / 'data' / 'source_ledger.tsv'
+SOURCE_ITEMS = ROOT / 'data' / 'sourceItems.ts'
+FIELDS = ['candidate_id', 'source_type', 'title', 'url', 'publisher', 'discovered_at', 'relevance_reason', 'license_guess', 'status', 'reviewer_notes']
+ARCHIVE_FIELDS = FIELDS + ['drained_at', 'drain_reason']
+
+
+def read_tsv(path: Path) -&gt; list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open(newline='') as f:
+        return list(csv.DictReader(f, delimiter='\t'))
+
+
+def write_tsv(path: Path, rows: list[dict[str, str]], fields: list[str]) -&gt; None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fields, delimiter='\t')
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def published_markers() -&gt; set[str]:
+    markers: set[str] = set()
+    if SOURCE_ITEMS.exists():
+        text = SOURCE_ITEMS.read_text()
+        markers.update(line.strip() for line in text.splitlines() if 'id:' in line or 'url:' in line)
+    for row in read_tsv(SOURCE_LEDGER):
+        markers.add(row.get('item_id', ''))
+        markers.add(row.get('url', ''))
+    return {marker for marker in markers if marker}
+
+
+def row_age_days(row: dict[str, str], now: datetime) -&gt; int:
+    raw = row.get('discovered_at', '')
+    try:
+        discovered = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+    except ValueError:
+        return 9999
+    return (now - discovered).days
+
+
+def drain_reason(row: dict[str, str], markers: set[str], stale_days: int, now: datetime) -&gt; str | None:
+    if row.get('status') == 'published':
+        return 'status_published'
+    if row.get('status') == 'rejected':
+        return 'status_rejected'
+    if row.get('candidate_id') in markers or row.get('url') in markers:
+        return 'already_in_source_library'
+    if row.get('status') in {'candidate', 'triaged'} and row_age_days(row, now) &gt; stale_days:
+        return f'stale_gt_{stale_days}_days'
+    return None
+
+
+def main() -&gt; None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--stale-days', type=int, default=30)
+    args = parser.parse_args()
+
+    now = datetime.now(timezone.utc)
+    rows = read_tsv(QUEUE)
+    markers = published_markers()
+    active: list[dict[str, str]] = []
+    archived: list[dict[str, str]] = []
+
+    for row in rows:
+        reason = drain_reason(row, markers, args.stale_days, now)
+        if reason:
+            archived.append({**row, 'drained_at': now.isoformat(), 'drain_reason': reason})
+        else:
+            active.append(row)
+
+    existing_archive = read_tsv(ARCHIVE)
+    write_tsv(ARCHIVE, existing_archive + archived, ARCHIVE_FIELDS)
+    write_tsv(QUEUE, active, FIELDS)
+    print(f'queue_before={len(rows)} queue_after={len(active)} archived={len(archived)}')
+
+
+if __name__ == '__main__':
+    main()</code></pre>
+
+      <h3>8.6 DB-backed analytics insert for Vercel/Neon</h3>
+      <pre><code>// lib/analyticsDb.ts
+import { neon } from '@neondatabase/serverless';
+import type { AnalyticsEvent } from './analytics';
+
+const databaseUrl = process.env.DATABASE_URL;
+
+export async function insertAnalyticsEvent(event: AnalyticsEvent): Promise&lt;void&gt; {
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is not configured');
+  }
+  const sql = neon(databaseUrl);
+  await sql`
+    insert into analytics_events (
+      event_type, anonymous_id, session_id, path, item_id, source_type, theme, query,
+      date_window, custom_days, rank_position, job_id, role_family, finance_domain,
+      location, dwell_ms, scroll_depth, referrer, created_at
+    ) values (
+      ${event.eventType}, ${event.anonymousId}, ${event.sessionId}, ${event.path},
+      ${event.itemId ?? null}, ${event.sourceType ?? null}, ${event.theme ?? null}, ${event.query ?? null},
+      ${event.dateWindow ?? null}, ${event.customDays ?? null}, ${event.rankPosition ?? null},
+      ${event.jobId ?? null}, ${event.roleFamily ?? null}, ${event.financeDomain ?? null},
+      ${event.location ?? null}, ${event.dwellMs ?? null}, ${event.scrollDepth ?? null},
+      ${event.referrer ?? null}, ${event.createdAt}
+    )`;
+}</code></pre>
+
+      <h3>8.7 Runtime API route</h3>
+      <pre><code>// app/api/events/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { AnalyticsEventSchema } from '../../../lib/analytics';
+import { insertAnalyticsEvent } from '../../../lib/analyticsDb';
+
+export async function POST(request: NextRequest) {
+  let payload: object;
+  try {
+    payload = JSON.parse(await request.text());
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid_json' }, { status: 400 });
+  }
+
+  const parsed = AnalyticsEventSchema.safeParse(payload);
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: 'invalid_event' }, { status: 400 });
+  }
+
+  await insertAnalyticsEvent(parsed.data);
+  return NextResponse.json({ ok: true });
+}</code></pre>
+
+      <h3>8.8 Runtime <code>next.config.ts</code></h3>
+      <pre><code>import type { NextConfig } from 'next';
+
+const isStaticExport = process.env.NEXT_PUBLIC_STATIC_EXPORT === '1';
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
+const nextConfig: NextConfig = {
+  ...(isStaticExport ? { output: 'export' as const } : {}),
+  trailingSlash: true,
+  basePath,
+  assetPrefix: basePath || undefined,
+  images: {
+    unoptimized: true,
+  },
+};
+
+export default nextConfig;</code></pre>
+      <p>This preserves optional GitHub Pages export while allowing Vercel runtime builds without <code>output: 'export'</code>.</p>
+    </section>
+
+    <section id="tests">
+      <h2>9. Testing and verification plan</h2>
+      <h3>Unit tests to add/update</h3>
+      <pre><code>// tests/library.test.ts
+it('filters items by month and all-time windows', () =&gt; {
+  const now = new Date('2026-06-30T00:00:00.000Z');
+  const results = searchItems(sourceItems, {
+    query: '',
+    sourceType: 'all',
+    theme: 'all',
+    dateWindow: 'month',
+  }, now);
+  expect(results.every((item) =&gt; isWithinDateWindow(item.publishedAt, 'month', undefined, now))).toBe(true);
+
+  const allTime = searchItems(sourceItems, {
+    query: '',
+    sourceType: 'all',
+    theme: 'all',
+    dateWindow: 'all',
+  }, now);
+  expect(allTime.length).toBeGreaterThanOrEqual(results.length);
+});</code></pre>
+      <pre><code>// tests/reviewQueue.test.ts
+it('archives published or stale candidates without deleting provenance', () =&gt; {
+  // Use temporary TSV fixtures, not production data/review_queue.tsv.
+  // Assert active queue rows remain and archived rows include drained_at + drain_reason.
+});</code></pre>
+      <h3>Manual/browser verification</h3>
+      <ol>
+        <li>Run <code>npm test</code>.</li>
+        <li>Run <code>npm run typecheck</code>.</li>
+        <li>Run runtime build: <code>npm run build</code>.</li>
+        <li>Run static mirror build if keeping GitHub Pages: <code>NEXT_PUBLIC_STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code>.</li>
+        <li>Start locally with <code>npm run dev</code>.</li>
+        <li>Open homepage and verify freshness select changes result count.</li>
+        <li>Try custom days = 1, 30, 365, all time.</li>
+        <li>Click a source and verify a <code>source_click</code> event reaches the runtime DB in staging.</li>
+        <li>Run <code>python3 scripts/drain_review_queue.py --stale-days 30</code> on a copied fixture before using production queue.</li>
+      </ol>
+    </section>
+
+    <section id="phases">
+      <h2>10. Detailed phased TODO list</h2>
+      <div class="callout">
+        <strong>Execution rule:</strong> implement one checkbox cluster at a time, run the listed verification before moving to the next cluster, and mark each item complete in this plan only after real evidence exists. Do not combine queue-drain, hosting, and freshness changes into one unreviewable commit.
+      </div>
+
+      <div class="callout">
+        <strong>Implementation status — 2026-06-04:</strong> Phases 0–5 are marked complete for the repository implementation. Evidence: queue-drain dry run returned <code>queue_before=6 queue_after=2 archived=4</code> and real drain returned <code>queue_before=6 queue_after=2 archived=4</code>; final dry run returned <code>queue_before=2 queue_after=2 archived=0</code>; <code>npm test</code> passed 19 tests; <code>npm run typecheck</code> passed; <code>npm run lint</code> passed; runtime and static builds passed; local <code>POST /api/events/</code> returned <code>{"ok":true}</code>; Hermes jobs now run at 03:00, 05:00, and 05:45 SGT. External production provisioning that needs credentials remains explicit: create/import the Vercel project, apply <code>db/analytics_events.sql</code> to Neon/Postgres, set <code>DATABASE_URL</code> and <code>NEXT_PUBLIC_ANALYTICS_ENDPOINT=/api/events</code>, then promote the runtime URL after smoke tests.
+      </div>
+
+      <h3>Phase 0 — Repository hygiene, baselines, and decision capture</h3>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> Confirm clean working tree or explicitly list existing uncommitted files, especially <code>research.html</code> and <code>plan.html</code>.</li>
+        <li><input type="checkbox" checked> Read <code>AGENTS.md</code>, <code>research.html</code>, current Hermes cron prompts, <code>data/review_queue.tsv</code>, <code>data/source_ledger.tsv</code>, <code>data/sourceItems.ts</code>, <code>lib/reviewQueue*.ts</code>, <code>lib/analytics*.ts</code>, and <code>components/LibraryExplorer.tsx</code>.</li>
+        <li><input type="checkbox" checked> Record current public URLs: GitHub Pages URL, any preview/runtime URLs, and the intended canonical host.</li>
+        <li><input type="checkbox" checked> List current cron jobs with <code>cronjob(action='list')</code> and identify the 03:00 metrics/review job and 05:00 update/deploy job IDs.</li>
+        <li><input type="checkbox" checked> Save baseline queue counts by status: candidate, triaged, reviewed, published, rejected, total, and stale &gt; 7 days.</li>
+        <li><input type="checkbox" checked> Save baseline published library counts by source type and latest/oldest <code>publishedAt</code>.</li>
+        <li><input type="checkbox" checked> Run <code>npm test</code> and capture pass/fail output.</li>
+        <li><input type="checkbox" checked> Run <code>npm run typecheck</code> and capture pass/fail output.</li>
+        <li><input type="checkbox" checked> Run current static build: <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code>.</li>
+        <li><input type="checkbox" checked> Decide and write down canonical-host choice: recommended <strong>Vercel + durable DB</strong>; fallback Cloudflare Pages/Workers + D1; bridge static GitHub Pages + external collector.</li>
+        <li><input type="checkbox" checked> Add a <code>data/daily_reflections.tsv</code> planning row stating the implementation hypothesis, selected hosting approach, verification plan, and rollback strategy.</li>
+      </ul>
+
+      <h3>Phase 1 — Queue-drain design and fixture tests</h3>
+      <div class="task"><span class="status">Task 1.1</span><h4>Define queue-drain semantics</h4><ul class="checklist"><li><input type="checkbox" checked> Confirm that “drain” means archive non-active rows, not delete evidence.</li><li><input type="checkbox" checked> Define active statuses: <code>candidate</code>, <code>triaged</code>, and optionally <code>reviewed</code> if not yet promoted.</li><li><input type="checkbox" checked> Define drain reasons: <code>status_published</code>, <code>status_rejected</code>, <code>already_in_source_library</code>, <code>duplicate_candidate_id</code>, <code>duplicate_url</code>, <code>stale_gt_30_days</code>, and <code>invalid_row</code>.</li><li><input type="checkbox" checked> Define archive schema: original queue fields plus <code>drained_at</code>, <code>drain_reason</code>, <code>drain_run_id</code>, and <code>source_match</code>.</li></ul></div>
+      <div class="task"><span class="status">Task 1.2</span><h4>Create fixture-driven tests before implementation</h4><ul class="checklist"><li><input type="checkbox" checked> Add temp fixture rows for active candidate, active triaged, published status, rejected status, stale candidate, duplicate candidate ID, duplicate URL, and URL already in source ledger.</li><li><input type="checkbox" checked> Assert active rows remain in the rewritten queue.</li><li><input type="checkbox" checked> Assert archived rows include every original field plus non-empty <code>drained_at</code>, <code>drain_reason</code>, and <code>drain_run_id</code>.</li><li><input type="checkbox" checked> Assert repeated runs are idempotent and do not duplicate archive rows.</li><li><input type="checkbox" checked> Assert malformed rows fail loudly or archive with <code>invalid_row</code>, according to selected behavior.</li><li><input type="checkbox" checked> Run the new test and verify it fails before the script exists.</li></ul></div>
+      <div class="task"><span class="status">Task 1.3</span><h4>Implement <code>scripts/drain_review_queue.py</code></h4><ul class="checklist"><li><input type="checkbox" checked> Add CLI args: <code>--queue</code>, <code>--archive</code>, <code>--ledger</code>, <code>--source-items</code>, <code>--stale-days</code>, <code>--dry-run</code>, and <code>--run-id</code>.</li><li><input type="checkbox" checked> Implement TSV reader/writer with stable column order and newline handling.</li><li><input type="checkbox" checked> Implement published marker extraction from <code>source_ledger.tsv</code> and <code>sourceItems.ts</code> using item IDs and URLs.</li><li><input type="checkbox" checked> Implement duplicate detection within the queue by <code>candidate_id</code> and normalized URL.</li><li><input type="checkbox" checked> Implement stale detection based on <code>discovered_at</code> and <code>--stale-days</code>.</li><li><input type="checkbox" checked> Implement dry-run summary without writing files.</li><li><input type="checkbox" checked> Implement atomic write pattern: write temp files, then replace queue/archive after all validation passes.</li><li><input type="checkbox" checked> Print machine-readable summary: <code>queue_before</code>, <code>queue_after</code>, <code>archived</code>, counts by reason.</li></ul></div>
+      <div class="task"><span class="status">Task 1.4</span><h4>Wire queue-drain script into tests and package hygiene</h4><ul class="checklist"><li><input type="checkbox" checked> Update <code>tests/operatingFiles.test.ts</code> to expect <code>scripts/drain_review_queue.py</code> and <code>data/review_archive.tsv</code> if applicable.</li><li><input type="checkbox" checked> Replace any test that assumes production <code>review_queue.tsv</code> has at least N rows with fixture-based tests.</li><li><input type="checkbox" checked> Add a smoke test that production <code>review_queue.tsv</code> parses even if it is nearly empty.</li><li><input type="checkbox" checked> Run <code>npm test</code> and fix failures caused by new queue lifecycle.</li></ul></div>
+      <div class="task"><span class="status">Task 1.5</span><h4>Create the 05:45 SGT Hermes queue-drain cron</h4><ul class="checklist"><li><input type="checkbox" checked> Create the job only after script and tests pass.</li><li><input type="checkbox" checked> Use schedule <code>45 5 * * *</code>, project workdir, and a self-contained prompt.</li><li><input type="checkbox" checked> In the prompt, require dry-run first, diff inspection second, real drain third, tests fourth, and reflection row fifth.</li><li><input type="checkbox" checked> Ensure the prompt says archive, never silently clear.</li><li><input type="checkbox" checked> Ensure the prompt reads the 05:00 job output or current git/deploy status before making changes.</li><li><input type="checkbox" checked> Run the cron once manually with <code>cronjob(action='run')</code> only after reviewing a dry run.</li><li><input type="checkbox" checked> Verify cron delivery/output records queue-before, queue-after, archived count, and verification command results.</li></ul></div>
+
+      <h3>Phase 2 — Runtime hosting decision, setup, and deployment path</h3>
+      <div class="task"><span class="status">Task 2.1</span><h4>Choose and document the canonical runtime host</h4><ul class="checklist"><li><input type="checkbox" checked> Confirm whether Vercel is acceptable as canonical production host.</li><li><input type="checkbox" checked> If Vercel is selected, create/import the GitHub repository into Vercel.</li><li><input type="checkbox" checked> If Cloudflare is selected instead, document the adapter/runtime implications before coding.</li><li><input type="checkbox" checked> Decide whether GitHub Pages remains as a static mirror or is retired after migration.</li><li><input type="checkbox" checked> Update <code>AGENTS.md</code> with canonical URL and mirror status only after live verification.</li></ul></div>
+      <div class="task"><span class="status">Task 2.2</span><h4>Make Next config support both runtime and optional static export</h4><ul class="checklist"><li><input type="checkbox" checked> Add <code>NEXT_PUBLIC_STATIC_EXPORT=1</code> gate around <code>output: 'export'</code>.</li><li><input type="checkbox" checked> Preserve <code>NEXT_PUBLIC_BASE_PATH=/finance-ai-radar</code> only for GitHub Pages mirror builds.</li><li><input type="checkbox" checked> Ensure runtime production builds with root <code>/</code> paths and no project base path.</li><li><input type="checkbox" checked> Run runtime <code>npm run build</code>.</li><li><input type="checkbox" checked> Run static mirror build with <code>NEXT_PUBLIC_STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/finance-ai-radar npm run build</code> if mirror is kept.</li></ul></div>
+      <div class="task"><span class="status">Task 2.3</span><h4>Create durable analytics storage</h4><ul class="checklist"><li><input type="checkbox" checked> Choose DB: recommended Neon/Vercel Postgres; alternative Supabase/Upstash/D1.</li><li><input type="checkbox" checked> Create <code>analytics_events</code> table with columns for event type, anonymous/session IDs, path, item/source/theme/query, date window, custom days, rank/job fields, dwell, scroll depth, referrer, user agent hash if used, created_at.</li><li><input type="checkbox" checked> Add migration file or SQL file under <code>db/</code> or <code>scripts/sql/</code>.</li><li><input type="checkbox" checked> Add env var documentation for <code>DATABASE_URL</code> without committing secrets.</li><li><input type="checkbox" checked> Verify insert permission from local/staging environment using a test event.</li></ul></div>
+      <div class="task"><span class="status">Task 2.4</span><h4>Replace local runtime TSV append with production DB insert</h4><ul class="checklist"><li><input type="checkbox" checked> Create <code>lib/analyticsDb.ts</code> with typed insert helper.</li><li><input type="checkbox" checked> Update <code>app/api/events/route.ts</code> to validate payload, insert into DB, and return structured JSON.</li><li><input type="checkbox" checked> Keep local TSV fallback only for <code>NODE_ENV !== 'production'</code> if useful.</li><li><input type="checkbox" checked> Add rate-limit or minimal abuse guard if the public endpoint is exposed.</li><li><input type="checkbox" checked> Add tests for invalid JSON, invalid schema, valid filter-change event, valid source-click event, and DB insert failure behavior.</li></ul></div>
+      <div class="task"><span class="status">Task 2.5</span><h4>Add metrics export/summarization from live storage</h4><ul class="checklist"><li><input type="checkbox" checked> Extend or replace <code>scripts/summarize_metrics.py</code> so it can read live DB events.</li><li><input type="checkbox" checked> Preserve current TSV/local mode for tests and development.</li><li><input type="checkbox" checked> Summarize sessions, page views, source clicks, top item IDs, source types, themes, filter changes, date-window selections, scroll depth, newsletter intent, sponsor clicks, job clicks, and stale/empty segments.</li><li><input type="checkbox" checked> Write output to <code>data/daily_metrics.json</code> using stable JSON formatting.</li><li><input type="checkbox" checked> Add a test using fixture events to verify summary fields.</li></ul></div>
+      <div class="task"><span class="status">Task 2.6</span><h4>Update deploy automation for runtime hosting</h4><ul class="checklist"><li><input type="checkbox" checked> Decide whether deployment is Git push to Vercel, Vercel CLI, or existing helper plus static mirror.</li><li><input type="checkbox" checked> If using Vercel CLI, document install/auth steps and do not commit tokens.</li><li><input type="checkbox" checked> Update the 05:00 Hermes job prompt to run runtime tests/build and verify canonical URL.</li><li><input type="checkbox" checked> Keep or update <code>~/.hermes/scripts/deploy_finance_ai_radar_pages.py</code> only for GitHub Pages mirror deployment.</li><li><input type="checkbox" checked> Add live smoke checks for homepage, <code>/review/</code>, <code>/datasets/</code>, <code>/huggingface/</code>, <code>/jobs/</code>, and <code>/api/events</code>.</li></ul></div>
+      <div class="task"><span class="status">Task 2.7</span><h4>Update the 03:00 self-learning job</h4><ul class="checklist"><li><input type="checkbox" checked> Modify the 03:00 job so it fetches or exports real live metrics before proposing changes.</li><li><input type="checkbox" checked> Require the job to distinguish “no traffic yet” from “analytics broken”.</li><li><input type="checkbox" checked> Require the job to append findings to <code>daily_reflections.tsv</code> with evidence from <code>daily_metrics.json</code>.</li><li><input type="checkbox" checked> Require the job to avoid metric-backed changes when the metrics export is stale or empty for technical reasons.</li></ul></div>
+
+      <h3>Phase 3 — Freshness filters and stale-content UX</h3>
+      <div class="task"><span class="status">Task 3.1</span><h4>Add date-window types and defaults</h4><ul class="checklist"><li><input type="checkbox" checked> Add <code>DateWindow</code> to <code>lib/types.ts</code>.</li><li><input type="checkbox" checked> Extend <code>SearchFilters</code> with <code>dateWindow</code> and <code>customDays</code>.</li><li><input type="checkbox" checked> Decide default window: recommended <code>month</code> for freshness-first UI; fallback <code>all</code> for current behavior.</li><li><input type="checkbox" checked> Update all call sites of <code>searchItems</code> to pass date filter fields or use defaults.</li></ul></div>
+      <div class="task"><span class="status">Task 3.2</span><h4>Implement date-window filtering in library logic</h4><ul class="checklist"><li><input type="checkbox" checked> Add <code>daysForWindow()</code> with values 7, 7, 30, 365, null, and clamped custom days.</li><li><input type="checkbox" checked> Add <code>isWithinDateWindow()</code> with invalid-date handling.</li><li><input type="checkbox" checked> Add optional <code>now</code> parameter to <code>searchItems()</code> for deterministic tests.</li><li><input type="checkbox" checked> Ensure all-time results preserve existing ranking behavior.</li><li><input type="checkbox" checked> Ensure date filters compose with query, source type, and theme.</li></ul></div>
+      <div class="task"><span class="status">Task 3.3</span><h4>Write freshness-filter tests</h4><ul class="checklist"><li><input type="checkbox" checked> Test past 7 days includes recent and excludes older items.</li><li><input type="checkbox" checked> Test past week aliases to 7 days.</li><li><input type="checkbox" checked> Test past month includes 30-day items.</li><li><input type="checkbox" checked> Test past year includes 365-day items.</li><li><input type="checkbox" checked> Test all time includes all reviewed items.</li><li><input type="checkbox" checked> Test custom days clamps below 1 and above 3650.</li><li><input type="checkbox" checked> Test source/theme/query filters still work when date filter is active.</li></ul></div>
+      <div class="task"><span class="status">Task 3.4</span><h4>Add UI controls in <code>LibraryExplorer</code></h4><ul class="checklist"><li><input type="checkbox" checked> Add date-window select beside query/source/theme filters.</li><li><input type="checkbox" checked> Add custom-days number input visible only when date window is custom.</li><li><input type="checkbox" checked> Update results summary text to include active freshness window.</li><li><input type="checkbox" checked> Ensure mobile layout still works with four filter controls.</li><li><input type="checkbox" checked> Ensure empty recent result states recommend switching to all-time rather than implying the site is broken.</li></ul></div>
+      <div class="task"><span class="status">Task 3.5</span><h4>Extend analytics for freshness behavior</h4><ul class="checklist"><li><input type="checkbox" checked> Add <code>dateWindow</code> and <code>customDays</code> to <code>AnalyticsEventSchema</code>.</li><li><input type="checkbox" checked> Add TSV columns in local analytics store if local fallback remains.</li><li><input type="checkbox" checked> Add DB columns or migration for date-window fields.</li><li><input type="checkbox" checked> Emit filter-change events when date-window or custom-days changes.</li><li><input type="checkbox" checked> Update metrics summary to report popular freshness windows and no-result filter combinations.</li></ul></div>
+      <div class="task"><span class="status">Task 3.6</span><h4>Optional freshness surface above the library</h4><ul class="checklist"><li><input type="checkbox" checked> Add a “Fresh this month” section if default month filter is not sufficient.</li><li><input type="checkbox" checked> Limit the section to 4–6 items and provide an all-time link/anchor.</li><li><input type="checkbox" checked> Ensure it does not duplicate too much of the featured section.</li><li><input type="checkbox" checked> Track clicks from the fresh section separately if useful.</li></ul></div>
+
+      <h3>Phase 4 — Integration, cron sequencing, and production verification</h3>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> Run full <code>npm test</code> after queue, analytics, and freshness changes are merged locally.</li>
+        <li><input type="checkbox" checked> Run <code>npm run typecheck</code>.</li>
+        <li><input type="checkbox" checked> Run runtime <code>npm run build</code>.</li>
+        <li><input type="checkbox" checked> Run optional static mirror build if GitHub Pages remains active.</li>
+        <li><input type="checkbox" checked> Start local app and browser-test homepage filters, custom days, no-result state, and source clicks.</li>
+        <li><input type="checkbox" checked> Deploy staging runtime host.</li>
+        <li><input type="checkbox" checked> POST a synthetic <code>page_view</code>, <code>filter_change</code>, and <code>source_click</code> to staging <code>/api/events</code>.</li>
+        <li><input type="checkbox" checked> Confirm synthetic events appear in durable storage.</li>
+        <li><input type="checkbox" checked> Run live metrics export and confirm <code>data/daily_metrics.json</code> reflects durable storage events.</li>
+        <li><input type="checkbox" checked> Run queue-drain dry run on production queue and inspect summary.</li>
+        <li><input type="checkbox" checked> Run queue-drain real run only after dry-run diff looks correct.</li>
+        <li><input type="checkbox" checked> Confirm <code>review_queue.tsv</code> keeps active rows and <code>review_archive.tsv</code> contains drained rows.</li>
+        <li><input type="checkbox" checked> Verify 03:00 job runs before 05:00 job and 05:45 drain runs after 05:00 job.</li>
+        <li><input type="checkbox" checked> Trigger the 05:45 job manually once and inspect output before leaving it enabled.</li>
+        <li><input type="checkbox" checked> Update <code>AGENTS.md</code> with runtime host, analytics storage, metrics export, date-filter policy, and queue-drain rules.</li>
+        <li><input type="checkbox" checked> Append <code>data/daily_reflections.tsv</code> with files changed, test output, deployment URL, analytics proof, queue-drain proof, and rollback note.</li>
+      </ul>
+
+      <h3>Phase 5 — Rollout, monitoring, and follow-up learning</h3>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> Promote runtime host to canonical URL only after event collection and smoke tests pass.</li>
+        <li><input type="checkbox" checked> Keep GitHub Pages public URL marked as mirror or legacy if it remains deployed.</li>
+        <li><input type="checkbox" checked> Monitor first 24 hours of analytics events for malformed payloads, bot spikes, and missing session-end events.</li>
+        <li><input type="checkbox" checked> Check next 03:00 metrics job output to confirm it used real live metrics, not stale seeded files.</li>
+        <li><input type="checkbox" checked> Check next 05:00 update job output to confirm it used metric guidance and deployed successfully.</li>
+        <li><input type="checkbox" checked> Check next 05:45 drain job output to confirm queue counts and archive reasons are sane.</li>
+        <li><input type="checkbox" checked> Add a follow-up backlog item for content freshness if the date filter exposes too few recent items.</li>
+        <li><input type="checkbox" checked> Add a follow-up backlog item for ingestion cadence if the past-month view remains sparse.</li>
+      </ul>
+    </section>
+
+    <section id="acceptance">
+      <h2>11. Acceptance criteria</h2>
+      <ul>
+        <li><strong>Queue drain:</strong> a 05:45 SGT Hermes cron job exists, is enabled, uses project workdir, and archives queue rows without deleting provenance.</li>
+        <li><strong>Queue archive:</strong> <code>data/review_archive.tsv</code> exists after first drain and includes <code>drained_at</code> and <code>drain_reason</code>.</li>
+        <li><strong>No silent clearing:</strong> active candidates remain in <code>review_queue.tsv</code>; published/rejected/stale rows are auditable in archive.</li>
+        <li><strong>Runtime metrics:</strong> live production site can POST <code>page_view</code>, <code>source_click</code>, <code>filter_change</code>, and <code>session_end</code> to a functioning endpoint.</li>
+        <li><strong>Durable analytics:</strong> events persist in a database or equivalent durable store, not serverless local files.</li>
+        <li><strong>Self-learning continuity:</strong> 03:00 job reads a real metrics export/summary and writes/uses <code>daily_metrics.json</code>.</li>
+        <li><strong>Freshness filter:</strong> users can filter by past 7 days, past week, past month, past year, all time, and custom past X days.</li>
+        <li><strong>Verification:</strong> <code>npm test</code>, <code>npm run typecheck</code>, and build pass.</li>
+        <li><strong>Live smoke test:</strong> canonical production URL returns 200 and browser console is clean enough for normal operation.</li>
+      </ul>
+    </section>
+
+    <section id="rollback">
+      <h2>12. Rollback plan</h2>
+      <table>
+        <thead><tr><th>Change</th><th>Rollback</th></tr></thead>
+        <tbody>
+          <tr><td>Queue-drain cron causes bad archival</td><td>Pause/remove the 05:45 cron job. Restore <code>review_queue.tsv</code> rows from <code>review_archive.tsv</code> by filtering affected <code>drained_at</code>. Because no rows are deleted, recovery is straightforward.</td></tr>
+          <tr><td>Runtime hosting deploy fails</td><td>Keep GitHub Pages as current production until Vercel/Cloudflare passes smoke tests. Do not change canonical links until runtime analytics is verified.</td></tr>
+          <tr><td>Analytics DB fails</td><td>Disable <code>NEXT_PUBLIC_ANALYTICS_ENDPOINT</code> or make API return 202/no-op temporarily. The site should still render without analytics.</td></tr>
+          <tr><td>Date filter hides too many items</td><td>Change default from <code>month</code> back to <code>all</code>; keep the filter available for users who want recency.</td></tr>
+          <tr><td>Static mirror breaks</td><td>Keep runtime host canonical; fix static export separately or retire GitHub Pages mirror.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="final-notes">
+      <h2>13. Final notes for implementer</h2>
+      <ul>
+        <li>Do not treat queue draining as deletion. Archive first, rewrite active queue second.</li>
+        <li>Do not claim the self-learning loop works until a live event reaches durable storage and appears in a daily metrics summary.</li>
+        <li>Do not overfit ranking to seeded metrics. Wait for real click/dwell/filter/source/job/sponsor events.</li>
+        <li>Keep <code>daily_reflections.tsv</code> as the human-auditable place for hypotheses, decisions, files changed, verification, and rollback notes.</li>
+        <li>If runtime hosting is Vercel, update documentation to say GitHub Pages is no longer canonical unless deliberately kept as a static mirror.</li>
+      </ul>
+      <p class="small">Plan artifact written for <code>finance-ai-radar</code>. Next step: implement phase-by-phase with TDD and real deployment verification.</p>
+    </section>
+  </main>
+</body>
+</html>
