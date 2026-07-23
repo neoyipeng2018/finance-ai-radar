@@ -1,4 +1,4 @@
-import type { ContentItem, DatasetCoverage, DateWindow, EditorialMetrics, HuggingFaceCoverage, JobsCoverage, SearchFilters, SourceType, ThemeBrief } from './types';
+import type { ContentItem, DashboardSnapshot, DatasetCoverage, DateWindow, EditorialMetrics, HuggingFaceCoverage, JobsCoverage, SearchFilters, SourceType, ThemeBrief } from './types';
 import type { ReviewQueueSummary } from './reviewQueue';
 
 const sourceOrder: SourceType[] = ['github', 'arxiv', 'ssrn', 'reddit', 'news', 'blog', 'broker', 'expert_call', 'dataset', 'kaggle', 'huggingface_dataset', 'huggingface_model', 'huggingface_paper', 'regulator', 'job', 'tool'];
@@ -108,6 +108,47 @@ export function getThemeBriefs(items: ContentItem[]): ThemeBrief[] {
       return { name, items: themedItems.length, averageScore, topUseCase };
     })
     .sort((a, b) => b.items - a.items || b.averageScore - a.averageScore || a.name.localeCompare(b.name));
+}
+
+export function getDashboardSnapshot(items: ContentItem[], now = new Date()): DashboardSnapshot {
+  const sourceCounts = getSourceCounts(items);
+  const themes = getThemeBriefs(items);
+  const reviewedItems = items.filter(reviewed).length;
+  const topItems = getFeaturedItems(items, 3, now);
+  const datasetItem = searchItems(items, { query: '', sourceType: 'huggingface_dataset', theme: 'all', dateWindow: 'all' })[0]
+    ?? searchItems(items, { query: '', sourceType: 'dataset', theme: 'all', dateWindow: 'all' })[0];
+  const jobItem = searchItems(items, { query: '', sourceType: 'job', theme: 'all', dateWindow: 'all' })[0];
+  const watchItem = topItems[0];
+
+  return {
+    heroStats: [
+      { label: 'Signals', value: String(items.length), detail: 'curated source-linked items' },
+      { label: 'Reviewed', value: String(reviewedItems), detail: 'cleared for front-page use' },
+      { label: 'Sources', value: String(Object.values(sourceCounts).filter((count) => count > 0).length), detail: 'distinct evidence channels' },
+      { label: 'Themes', value: String(themes.length), detail: 'finance AI opportunity clusters' },
+    ],
+    priorityPanels: [
+      {
+        label: 'Watch now',
+        title: watchItem?.title ?? 'No current watch item',
+        detail: watchItem?.financeUseCase ?? 'Add reviewed items to populate the watch panel.',
+        href: watchItem?.url ?? '#library',
+      },
+      {
+        label: 'Dataset edge',
+        title: datasetItem?.title ?? 'No dataset signal yet',
+        detail: datasetItem?.datasetFields ? `${datasetItem.datasetFields.modality} · ${datasetItem.datasetFields.license}` : datasetItem?.financeUseCase ?? 'Add public-domain datasets to sharpen the edge.',
+        href: datasetItem?.url ?? '#library',
+      },
+      {
+        label: 'Hiring demand',
+        title: jobItem?.title ?? 'No hiring signal yet',
+        detail: jobItem?.jobFields ? `${jobItem.jobFields.roleFamily} · ${jobItem.jobFields.location} · ${jobItem.jobFields.skills.slice(0, 2).join(', ')}` : jobItem?.financeUseCase ?? 'Add AI + finance jobs to track demand.',
+        href: jobItem?.url ?? '#library',
+      },
+    ],
+    topItems,
+  };
 }
 
 export function sourceLabel(sourceType: SourceType): string {

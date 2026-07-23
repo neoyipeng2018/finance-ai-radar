@@ -41,18 +41,20 @@ describe('review queue drain script', () => {
     const archive = join(dir, 'review_archive.tsv');
     const ledger = join(dir, 'source_ledger.tsv');
     const sourceItems = join(dir, 'sourceItems.ts');
+    const recentDate = new Date().toISOString();
+    const staleDate = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
 
     writeFileSync(ledger, 'item_id\turl\nledger-match\thttps://example.com/already-published\n');
     writeFileSync(sourceItems, "export const sourceItems = [{ id: 'source-match', url: 'https://example.com/source-item' }];\n");
     writeFileSync(queue, [
       header,
-      row('active-candidate', 'https://example.com/active', '2026-06-01T00:00:00.000Z', 'candidate'),
-      row('published-status', 'https://example.com/published-status', '2026-06-01T00:00:00.000Z', 'published'),
-      row('rejected-status', 'https://example.com/rejected-status', '2026-06-01T00:00:00.000Z', 'rejected'),
-      row('ledger-match', 'https://example.com/already-published', '2026-06-01T00:00:00.000Z', 'candidate'),
-      row('stale-candidate', 'https://example.com/stale', '2026-01-01T00:00:00.000Z', 'candidate'),
-      row('dup-candidate', 'https://example.com/dup-one', '2026-06-01T00:00:00.000Z', 'candidate'),
-      row('dup-candidate', 'https://example.com/dup-two', '2026-06-01T00:00:00.000Z', 'candidate'),
+      row('active-candidate', 'https://example.com/active', recentDate, 'candidate'),
+      row('published-status', 'https://example.com/published-status', recentDate, 'published'),
+      row('rejected-status', 'https://example.com/rejected-status', recentDate, 'rejected'),
+      row('ledger-match', 'https://example.com/already-published', recentDate, 'candidate'),
+      row('stale-candidate', 'https://example.com/stale', staleDate, 'candidate'),
+      row('dup-candidate', 'https://example.com/dup-one', recentDate, 'candidate'),
+      row('dup-candidate', 'https://example.com/dup-two', recentDate, 'candidate'),
     ].join('\n'));
 
     const output = runDrain(projectRoot, queue, archive, ledger, sourceItems);

@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finance AI Radar Closed Loop Workflow — Implementation Plan</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050914;
+      --panel: #0d1728;
+      --panel-2: #10243d;
+      --text: #edf5ff;
+      --muted: #9db1c9;
+      --line: #233a5c;
+      --accent: #74f7d1;
+      --accent-2: #8db4ff;
+      --warn: #ffd166;
+      --danger: #ff7a90;
+      --code: #050b14;
+      --ok: #9dffb0;
+      --shadow: 0 24px 70px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 16% 0%, rgba(116,247,209,.16), transparent 34rem),
+        radial-gradient(circle at 88% 10%, rgba(141,180,255,.18), transparent 32rem),
+        radial-gradient(circle at 55% 45%, rgba(255,209,102,.07), transparent 36rem),
+        linear-gradient(180deg, #050914 0%, #081120 48%, #04070d 100%);
+      font: 16px/1.62 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 46px 24px 96px; }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: 44px;
+      background: linear-gradient(135deg, rgba(16,36,61,.92), rgba(5,9,20,.92));
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      width: 330px;
+      height: 330px;
+      right: -100px;
+      top: -120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(116,247,209,.24), transparent 70%);
+      pointer-events: none;
+    }
+    .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .18em; font-size: 12px; font-weight: 900; }
+    h1 { max-width: 900px; margin: 12px 0 18px; font-size: clamp(38px, 5vw, 68px); line-height: 1.02; letter-spacing: -.055em; }
+    h2 { margin-top: 48px; font-size: 31px; line-height: 1.18; letter-spacing: -.035em; }
+    h3 { margin-top: 28px; font-size: 21px; letter-spacing: -.015em; }
+    h4 { margin: 20px 0 8px; color: var(--accent-2); }
+    p, li, td { color: var(--muted); }
+    strong, th { color: var(--text); }
+    .hero p { max-width: 900px; font-size: 18px; }
+    .grid { display: grid; gap: 18px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(13,23,40,.78);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+    .card h3 { margin-top: 0; }
+    .tag { display: inline-flex; margin: 3px 4px 3px 0; padding: 3px 9px; border: 1px solid rgba(116,247,209,.38); border-radius: 999px; color: var(--accent); font-size: 12px; font-weight: 800; }
+    .callout { border-left: 4px solid var(--accent); background: rgba(116,247,209,.08); padding: 16px 18px; border-radius: 14px; }
+    .warning { border-left-color: var(--warn); background: rgba(255,209,102,.09); }
+    .danger { border-left-color: var(--danger); background: rgba(255,122,144,.09); }
+    .ok { border-left-color: var(--ok); background: rgba(157,255,176,.08); }
+    pre { overflow-x: auto; background: var(--code); border: 1px solid #173252; border-radius: 16px; padding: 18px; color: #d8eaff; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    th, td { border-bottom: 1px solid var(--line); padding: 12px 14px; vertical-align: top; }
+    th { background: rgba(141,180,255,.12); text-align: left; }
+    .flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+    .flow div { border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: rgba(255,255,255,.035); text-align: center; font-weight: 800; color: var(--text); }
+    .checklist li { margin: 8px 0; }
+    .small { font-size: 13px; color: var(--muted); }
+    @media (max-width: 900px) { .grid.two, .grid.three, .flow { grid-template-columns: 1fr; } .hero { padding: 28px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="eyebrow">Plan: Closed-loop finance AI aggregator</div>
+      <h1>Workflow, Review Queue, Public Dataset Expansion, and Self-Improving Agent Loop</h1>
+      <p><strong>Goal:</strong> turn Finance AI Radar from a curated static homepage into a learning system: ingest public finance/NLP sources, stage candidates in a review queue, publish only rights-safe reviewed items, measure what users click and read, run a daily reflection agent over metrics, update <code>AGENTS.md</code> with lessons, and have an implementation agent execute appropriately sized, tested improvements, including larger refactors when the evidence and verification gates justify them.</p>
+      <p><strong>North star:</strong> every day the website learns which AI-in-finance themes are useful to readers and converts that learning into better source acquisition, ranking, UX, monetization, and editorial guidance.</p>
+    </header>
+
+    <section>
+      <h2>1. System Architecture</h2>
+      <div class="flow">
+        <div>Source Ingestion</div>
+        <div>Review Queue</div>
+        <div>Publication</div>
+        <div>Analytics Ledger</div>
+        <div>Daily Agent Loop</div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>Current baseline</h3>
+          <ul>
+            <li>Next.js app at <code>finance-ai-radar/</code>.</li>
+            <li>Curated seed items live in <code>data/sourceItems.ts</code>.</li>
+            <li>Human-auditable source ledger lives in <code>data/source_ledger.tsv</code>.</li>
+            <li>Library tests validate ranking, search, source counts, theme briefs, and editorial metrics.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Target design</h3>
+          <ul>
+            <li><strong>Queue-first ingestion:</strong> crawlers write drafts, not homepage items.</li>
+            <li><strong>Dataset and Hugging Face expansion:</strong> Kaggle, Hugging Face datasets, Hugging Face models, Hugging Face papers, data.gov, SEC, FRED, World Bank, BIS, CFPB, FINRA, OCC, FDIC, and central-bank datasets become first-class content.</li>
+            <li><strong>First-party analytics:</strong> click, dwell, scroll depth, filter, theme, sponsor, and newsletter events are logged to a small events table.</li>
+            <li><strong>Daily reflection:</strong> a Hermes cron job reads metrics and writes evidence-backed edits to <code>AGENTS.md</code>.</li>
+            <li><strong>Implementation agent:</strong> a second job or chained agent executes the right-sized improvement with tests and build verification; small changes are preferred, but bigger changes are allowed when metrics reveal a structural bottleneck.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout warning">
+        <strong>Important safety gate:</strong> the implementation agent must not directly deploy arbitrary changes from metrics. It should create a branch or local patch, run tests, record the decision in <code>data/daily_reflections.tsv</code>, and only ship changes that pass explicit quality gates. Larger changes are allowed when the reflection clearly states the evidence, scope, rollback plan, and verification commands.
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Data Model</h2>
+      <p>Move from a static-only array to a source-of-truth queue plus a generated published dataset. Keep the current TypeScript files for the UI at first, but add structured storage under <code>data/</code> so the system remains inspectable and spreadsheet-friendly.</p>
+
+      <h3>2.1 Content status model</h3>
+      <table>
+        <thead><tr><th>Status</th><th>Meaning</th><th>Can show publicly?</th></tr></thead>
+        <tbody>
+          <tr><td><code>candidate</code></td><td>Discovered by script or agent; not reviewed.</td><td>No</td></tr>
+          <tr><td><code>triaged</code></td><td>Looks relevant; needs summary, license note, caveat, and score.</td><td>No</td></tr>
+          <tr><td><code>reviewed</code></td><td>Human/agent has completed required fields and rights posture.</td><td>Yes</td></tr>
+          <tr><td><code>published</code></td><td>Visible on homepage/library/theme pages.</td><td>Yes</td></tr>
+          <tr><td><code>rejected</code></td><td>Duplicate, weak, unsafe, stale, or off-topic.</td><td>No</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 TypeScript content types</h3>
+      <pre><code>export type SourceType =
+  | 'arxiv'
+  | 'ssrn'
+  | 'reddit'
+  | 'news'
+  | 'blog'
+  | 'github'
+  | 'broker'
+  | 'expert_call'
+  | 'dataset'
+  | 'kaggle'
+  | 'huggingface_dataset'
+  | 'regulator'
+  | 'job'
+  | 'tool';
+
+export type ReviewStatus = 'candidate' | 'triaged' | 'reviewed' | 'published' | 'rejected';
+
+export type ContentItem = {
+  id: string;
+  sourceType: SourceType;
+  title: string;
+  url: string;
+  publisher: string;
+  publishedAt: string;
+  summary: string;
+  whyItMatters: string;
+  financeUseCase: string;
+  aiTechnique: string;
+  themes: string[];
+  audience: string[];
+  maturity: 'research' | 'prototype' | 'production' | 'vendor' | 'regulation' | 'discussion' | 'dataset' | 'hiring_signal';
+  score: number;
+  evidenceQuality: 'low' | 'medium' | 'high';
+  licenseNote: string;
+  riskOrCaveat: string;
+  reviewStatus: ReviewStatus;
+  readingTimeMinutes: number;
+  discoveredAt: string;
+  reviewedAt?: string;
+  datasetFields?: DatasetMetadata;
+  jobFields?: JobMetadata;
+};
+
+export type DatasetMetadata = {
+  modality: 'text' | 'tabular' | 'time_series' | 'graph' | 'mixed';
+  access: 'open_download' | 'api' | 'account_required' | 'metadata_only';
+  license: string;
+  updateFrequency: 'static' | 'daily' | 'weekly' | 'monthly' | 'irregular';
+  nlpUseCases: string[];
+  leakageRisks: string[];
+};
+
+export type JobMetadata = {
+  company: string;
+  roleFamily: 'research' | 'quant' | 'engineering' | 'risk' | 'compliance' | 'product' | 'data' | 'sales';
+  location: string;
+  seniority: 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'executive' | 'unknown';
+  skills: string[];
+  financeDomain: string;
+  compensationSignal: 'listed' | 'not_listed' | 'range_only';
+  postingFreshnessDays: number;
+};</code></pre>
+
+      <h3>2.3 Human-auditable ledgers</h3>
+      <p>Keep one ledger per operational loop so the user can audit it in a spreadsheet.</p>
+      <table>
+        <thead><tr><th>File</th><th>Purpose</th><th>Key columns</th></tr></thead>
+        <tbody>
+          <tr><td><code>data/review_queue.tsv</code></td><td>All discovered candidates before publication.</td><td><code>candidate_id, source_type, title, url, discovered_at, relevance_reason, license_guess, status, reviewer_notes</code></td></tr>
+          <tr><td><code>data/source_ledger.tsv</code></td><td>Reviewed/published items only.</td><td><code>item_id, source_type, title, url, finance_use_case, ai_technique, why_it_matters, risk_or_caveat, license_note, review_status, human_notes</code></td></tr>
+          <tr><td><code>data/jobs_ledger.tsv</code></td><td>Reviewed AI + finance job posts as demand-side market intelligence.</td><td><code>job_id, company, title, url, location, role_family, skills, finance_domain, posted_at, status, notes</code></td></tr>
+          <tr><td><code>data/analytics_events.tsv</code></td><td>First-party site behavior for local/dev mode.</td><td><code>event_id, session_id, event_type, item_id, source_type, theme, path, referrer, dwell_ms, scroll_depth, created_at</code></td></tr>
+          <tr><td><code>data/daily_reflections.tsv</code></td><td>Agent learning history.</td><td><code>date, metric_snapshot, hypothesis, decision, files_changed, verification, rollback_note</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>3. Review Queue Workflow</h2>
+      <p>The queue should make curation scalable without polluting the homepage. Everything discovered by crawlers lands as a candidate. Publishing requires the editorial rule: source link + why it matters + caveat + license note.</p>
+
+      <h3>3.1 Queue files and helpers</h3>
+      <pre><code>// lib/reviewQueue.ts
+import { z } from 'zod';
+
+export const ReviewCandidateSchema = z.object({
+  candidateId: z.string().min(4),
+  sourceType: z.enum(['arxiv', 'ssrn', 'reddit', 'news', 'blog', 'github', 'dataset', 'kaggle', 'huggingface_dataset', 'regulator', 'job', 'tool']),
+  title: z.string().min(8),
+  url: z.string().url(),
+  publisher: z.string().min(2),
+  discoveredAt: z.string(),
+  relevanceReason: z.string().min(20),
+  licenseGuess: z.string().min(4),
+  status: z.enum(['candidate', 'triaged', 'reviewed', 'published', 'rejected']),
+  reviewerNotes: z.string(),
+});
+
+export type ReviewCandidate = z.infer&lt;typeof ReviewCandidateSchema&gt;;
+
+export function isPublishable(candidate: ReviewCandidate): boolean {
+  return candidate.status === 'reviewed' || candidate.status === 'published';
+}</code></pre>
+
+      <h3>3.2 Review queue UI</h3>
+      <p>Add a private/local page at <code>app/review/page.tsx</code>. In the first implementation, protect it by not linking it publicly and by requiring a local environment flag. Later, move it behind real auth.</p>
+      <pre><code>// app/review/page.tsx
+import { getReviewCandidates } from '../../lib/reviewQueueStore';
+
+export default async function ReviewQueuePage() {
+  const candidates = await getReviewCandidates();
+
+  return (
+    &lt;main className="page-shell"&gt;
+      &lt;section className="section"&gt;
+        &lt;div className="section-head"&gt;
+          &lt;div&gt;
+            &lt;div className="eyebrow"&gt;Editorial queue&lt;/div&gt;
+            &lt;h1&gt;Review candidates before they touch the homepage.&lt;/h1&gt;
+          &lt;/div&gt;
+          &lt;p&gt;Every candidate needs rationale, caveat, license posture, and score before publication.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div className="library-list"&gt;
+          {candidates.map((candidate) =&gt; (
+            &lt;article className="item-card" key={candidate.candidateId}&gt;
+              &lt;div className="card-top"&gt;
+                &lt;span className="badge"&gt;{candidate.sourceType}&lt;/span&gt;
+                &lt;span className="score"&gt;{candidate.status}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;h3&gt;&lt;a href={candidate.url}&gt;{candidate.title}&lt;/a&gt;&lt;/h3&gt;
+              &lt;p&gt;{candidate.relevanceReason}&lt;/p&gt;
+              &lt;p className="rationale"&gt;&lt;strong&gt;License guess:&lt;/strong&gt; {candidate.licenseGuess}&lt;/p&gt;
+            &lt;/article&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/section&gt;
+    &lt;/main&gt;
+  );
+}</code></pre>
+
+      <h3>3.3 Review checklist</h3>
+      <ul class="checklist">
+        <li>✅ Is this specifically about AI/ML/NLP applied to finance, not generic AI?</li>
+        <li>✅ Does it teach a practitioner something actionable?</li>
+        <li>✅ Is the source public or rights-safe to summarize?</li>
+        <li>✅ Is there a clear finance use case?</li>
+        <li>✅ Is there a caveat: leakage, bias, marketing, reproducibility, data rights, or compliance?</li>
+        <li>✅ Can it be mapped to at least one theme and audience?</li>
+        <li>✅ Does it deserve homepage ranking, theme-page ranking, or only archive presence?</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Kaggle and Open Public Dataset Expansion</h2>
+      <p>Datasets are a strategic differentiator because they attract builders, researchers, students, and fund-hireable AI finance talent. Treat datasets as first-class source items, not appendix links.</p>
+
+      <h3>4.1 Dataset source classes to monitor</h3>
+      <table>
+        <thead><tr><th>Source</th><th>Examples</th><th>Why it matters</th><th>Risk posture</th></tr></thead>
+        <tbody>
+          <tr><td>Kaggle</td><td>financial news, stock tweets, SEC filings subsets, credit card fraud, loan default, earnings transcripts if rights-safe</td><td>High discoverability for students/builders; good for tutorials and benchmarks.</td><td>Check license and provenance carefully; many Kaggle mirrors have unclear rights.</td></tr>
+          <tr><td>Hugging Face Datasets</td><td>financial_phrasebank, FiQA, FinQA, ConvFinQA, SEC filing datasets, finance sentiment corpora</td><td>Strong NLP/LLM workflow fit; easy programmatic ingestion.</td><td>Dataset cards vary in quality; confirm license and original source.</td></tr>
+          <tr><td>Hugging Face Models</td><td>FinBERT, finance embeddings, SEC filing classifiers, financial QA models</td><td>Connects reusable model cards to practical finance AI workflows.</td><td>Model cards vary; verify license, training data, task fit, and deployment risks.</td></tr>
+          <tr><td>Hugging Face Papers</td><td>FinGPT, financial sentiment, financial QA, LLM evaluation, finance RAG papers</td><td>Links research claims to models, datasets, and community attention.</td><td>Paper clusters need reproducibility and version review.</td></tr>
+          <tr><td>SEC / EDGAR</td><td>10-K, 10-Q, 8-K, proxy filings, ownership filings</td><td>Canonical public-domain finance text substrate.</td><td>Respect fair-access policy; preserve point-in-time correctness.</td></tr>
+          <tr><td>FRED / BEA / BLS / Treasury</td><td>macro time series, rates, employment, inflation, fiscal data</td><td>Useful for macro AI, narrative momentum, and market context.</td><td>Mostly public, but cite source and vintage/revision issues.</td></tr>
+          <tr><td>World Bank / IMF / BIS</td><td>banking, credit, financial inclusion, cross-border flows</td><td>Global public datasets for banking and credit themes.</td><td>Check terms and update cadence.</td></tr>
+          <tr><td>Regulators</td><td>CFPB complaints, FINRA disciplinary actions, OCC, FDIC failed-bank data</td><td>Compliance, conduct, lending, and bank-risk use cases.</td><td>Privacy and interpretation risks; avoid overclaiming.</td></tr>
+          <tr><td>OpenAlex / Crossref / arXiv</td><td>paper metadata and citation graphs</td><td>Build research maps and trend detection.</td><td>Metadata quality varies; avoid scraping restricted full text.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.2 Kaggle ingestion script</h3>
+      <p>Use Kaggle API when credentials exist. If credentials are absent, the script should skip gracefully and log setup instructions.</p>
+      <pre><code># scripts/ingest_kaggle.py
+import csv
+import json
+import subprocess
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+QUEUE = ROOT / "data" / "review_queue.tsv"
+
+QUERIES = [
+    "financial news nlp",
+    "finance sentiment",
+    "sec filings",
+    "credit default",
+    "loan default",
+    "credit card fraud",
+    "earnings call transcript",
+]
+
+FIELDS = [
+    "candidate_id", "source_type", "title", "url", "publisher", "discovered_at",
+    "relevance_reason", "license_guess", "status", "reviewer_notes"
+]
+
+def run_kaggle(query: str) -&gt; list[dict[str, str]]:
+    result = subprocess.run(
+        ["kaggle", "datasets", "list", "--search", query, "--csv"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        print(json.dumps({"query": query, "status": "skipped", "stderr": result.stderr[:300]}))
+        return []
+    rows = csv.DictReader(result.stdout.splitlines())
+    return list(rows)[:8]
+
+def append_candidate(row: dict[str, str], query: str) -&gt; dict[str, str]:
+    ref = row.get("ref", "").strip()
+    title = row.get("title", ref).strip()
+    return {
+        "candidate_id": f"kaggle-{ref.replace('/', '-').lower()}",
+        "source_type": "kaggle",
+        "title": title,
+        "url": f"https://www.kaggle.com/datasets/{ref}",
+        "publisher": ref.split("/")[0] if "/" in ref else "Kaggle",
+        "discovered_at": datetime.now(timezone.utc).isoformat(),
+        "relevance_reason": f"Matched Kaggle query '{query}' for finance/NLP dataset monitoring.",
+        "license_guess": row.get("licenseName", "Check Kaggle dataset page before reuse") or "Check Kaggle dataset page before reuse",
+        "status": "candidate",
+        "reviewer_notes": "Needs provenance, license, NLP use case, leakage risk, and quality review.",
+    }
+
+def main() -&gt; None:
+    QUEUE.parent.mkdir(parents=True, exist_ok=True)
+    existing = set()
+    if QUEUE.exists():
+        with QUEUE.open(newline="") as f:
+            existing = {r["candidate_id"] for r in csv.DictReader(f, delimiter="\t")}
+    write_header = not QUEUE.exists()
+    with QUEUE.open("a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDS, delimiter="\t")
+        if write_header:
+            writer.writeheader()
+        for query in QUERIES:
+            for row in run_kaggle(query):
+                candidate = append_candidate(row, query)
+                if candidate["candidate_id"] not in existing:
+                    writer.writerow(candidate)
+                    existing.add(candidate["candidate_id"])
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+      <h3>4.3 Hugging Face dataset ingestion script</h3>
+      <pre><code># scripts/ingest_hf_datasets.py
+import csv
+from datetime import datetime, timezone
+from pathlib import Path
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+QUEUE = ROOT / "data" / "review_queue.tsv"
+FIELDS = ["candidate_id", "source_type", "title", "url", "publisher", "discovered_at", "relevance_reason", "license_guess", "status", "reviewer_notes"]
+QUERIES = ["finance nlp", "financial sentiment", "sec filings", "financial question answering", "earnings call"]
+
+def search(query: str) -&gt; list[dict]:
+    url = f"https://huggingface.co/api/datasets?search={quote(query)}&limit=10&full=true"
+    req = Request(url, headers={"User-Agent": "finance-ai-radar/0.1"})
+    with urlopen(req, timeout=30) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+def candidate(dataset: dict, query: str) -&gt; dict[str, str]:
+    dataset_id = dataset.get("id", "")
+    card = dataset.get("cardData") or {}
+    license_value = card.get("license") or "Check dataset card and original source"
+    return {
+        "candidate_id": f"hf-{dataset_id.replace('/', '-').lower()}",
+        "source_type": "huggingface_dataset",
+        "title": dataset_id,
+        "url": f"https://huggingface.co/datasets/{dataset_id}",
+        "publisher": dataset_id.split("/")[0] if "/" in dataset_id else "Hugging Face",
+        "discovered_at": datetime.now(timezone.utc).isoformat(),
+        "relevance_reason": f"Matched Hugging Face dataset query '{query}' for finance/NLP monitoring.",
+        "license_guess": str(license_value),
+        "status": "candidate",
+        "reviewer_notes": "Needs dataset-card review, source provenance, task fit, and leakage-risk note.",
+    }
+
+def main() -&gt; None:
+    QUEUE.parent.mkdir(parents=True, exist_ok=True)
+    existing = set()
+    if QUEUE.exists():
+        with QUEUE.open(newline="") as f:
+            existing = {r["candidate_id"] for r in csv.DictReader(f, delimiter="\t")}
+    with QUEUE.open("a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDS, delimiter="\t")
+        if not existing:
+            writer.writeheader()
+        for query in QUERIES:
+            for item in search(query):
+                row = candidate(item, query)
+                if row["candidate_id"] not in existing:
+                    writer.writerow(row)
+                    existing.add(row["candidate_id"])
+
+if __name__ == "__main__":
+    main()</code></pre>
+    </section>
+
+    <section>
+      <h2>5. AI + Finance Jobs Intelligence</h2>
+      <p>Jobs are not just a job board; they are demand-side evidence. If banks, funds, vendors, exchanges, insurers, and fintechs repeatedly hire for the same AI + finance roles, that tells the aggregator which workflows have budget and which skills readers should learn.</p>
+
+      <div class="grid two">
+        <div class="card">
+          <h3>Roles to track</h3>
+          <ul>
+            <li>AI research analyst for buy-side or sell-side research teams.</li>
+            <li>Quant ML engineer and investment data scientist.</li>
+            <li>Financial NLP engineer for filings, news, transcripts, and compliance text.</li>
+            <li>Credit ML scientist for underwriting, fraud, collections, and fair lending.</li>
+            <li>Model risk AI specialist and compliance AI product manager.</li>
+            <li>Bank AI transformation lead, research copilot PM, and enterprise AI governance lead.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Job source classes</h3>
+          <ul>
+            <li>Company career pages for banks, funds, data vendors, exchanges, insurers, fintechs, and AI labs serving finance.</li>
+            <li>Public job boards such as LinkedIn, Indeed, Google Jobs, Wellfound, eFinancialCareers, Levels.fyi, and Greenhouse/Lever pages where permitted.</li>
+            <li>Newsletter/community job posts from quant, fintech, ML, and financial data communities.</li>
+            <li>Manual submissions from readers and sponsors, clearly labeled if sponsored.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>5.1 Jobs data model</h3>
+      <pre><code>export type JobPost = {
+  id: string;
+  company: string;
+  title: string;
+  url: string;
+  location: string;
+  roleFamily: 'research' | 'quant' | 'engineering' | 'risk' | 'compliance' | 'product' | 'data' | 'sales';
+  seniority: 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'executive' | 'unknown';
+  skills: string[];
+  financeDomain: string;
+  aiFinanceRelevance: string;
+  whyItMatters: string;
+  postedAt: string;
+  discoveredAt: string;
+  status: 'candidate' | 'reviewed' | 'published' | 'expired' | 'rejected';
+  sponsorStatus: 'organic' | 'sponsored' | 'partner';
+};</code></pre>
+
+      <h3>5.2 Jobs ingestion script sketch</h3>
+      <pre><code># scripts/ingest_jobs.py
+import csv
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+QUEUE = ROOT / "data" / "review_queue.tsv"
+JOBS = ROOT / "data" / "jobs_ledger.tsv"
+
+ROLE_KEYWORDS = [
+    "AI finance", "financial NLP", "quant machine learning", "LLM banking",
+    "model risk AI", "credit machine learning", "investment data scientist",
+]
+
+FIELDS = [
+    "job_id", "company", "title", "url", "location", "role_family", "skills",
+    "finance_domain", "posted_at", "discovered_at", "status", "sponsor_status", "notes"
+]
+
+def normalize_job(raw: dict[str, str]) -&gt; dict[str, str]:
+    title = raw["title"]
+    company = raw["company"]
+    return {
+        "job_id": f"job-{company}-{title}".lower().replace(" ", "-")[:96],
+        "company": company,
+        "title": title,
+        "url": raw["url"],
+        "location": raw.get("location", "unknown"),
+        "role_family": raw.get("role_family", "unknown"),
+        "skills": raw.get("skills", ""),
+        "finance_domain": raw.get("finance_domain", "finance"),
+        "posted_at": raw.get("posted_at", ""),
+        "discovered_at": datetime.now(timezone.utc).isoformat(),
+        "status": "candidate",
+        "sponsor_status": "organic",
+        "notes": "Review for AI+finance specificity, freshness, seniority, and skill signal.",
+    }
+
+def main() -&gt; None:
+    JOBS.parent.mkdir(parents=True, exist_ok=True)
+    # First implementation can read a manually exported CSV from permitted job sources.
+    # Later implementations can add API/feed adapters per source terms.
+    input_path = ROOT / "data" / "job_candidates_manual.csv"
+    if not input_path.exists():
+        print("No manual job candidate CSV found; no-op.")
+        return
+    existing = set()
+    if JOBS.exists():
+        with JOBS.open(newline="") as f:
+            existing = {r["job_id"] for r in csv.DictReader(f, delimiter="	")}
+    with input_path.open(newline="") as src, JOBS.open("a", newline="") as dst:
+        reader = csv.DictReader(src)
+        writer = csv.DictWriter(dst, fieldnames=FIELDS, delimiter="	")
+        if not existing:
+            writer.writeheader()
+        for raw in reader:
+            row = normalize_job(raw)
+            if row["job_id"] not in existing:
+                writer.writerow(row)
+                existing.add(row["job_id"])
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+      <h3>5.3 Jobs product surfaces</h3>
+      <ul class="checklist">
+        <li>✅ Add a <code>/jobs</code> page after the first reviewed jobs exist.</li>
+        <li>✅ Add a weekly “AI + Finance Hiring Signal” module: top role families, top skills, employers, geographies, and finance domains.</li>
+        <li>✅ Add source-card links from jobs to relevant learning resources: datasets, papers, repos, and themes.</li>
+        <li>✅ Monetize carefully: paid job listings and hiring sponsor slots must be clearly labeled and never affect editorial ranking without disclosure.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. First-Party Analytics and Learning Metrics</h2>
+      <p>The goal is not vanity traffic. The goal is to learn which sources, themes, and monetization surfaces create useful attention from finance practitioners.</p>
+
+      <h3>6.1 Metrics to log</h3>
+      <table>
+        <thead><tr><th>Metric</th><th>Question answered</th><th>Event fields</th></tr></thead>
+        <tbody>
+          <tr><td>Outbound source click</td><td>Which papers/repos/datasets actually attract action?</td><td><code>event_type=source_click, item_id, source_type, theme, rank_position</code></td></tr>
+          <tr><td>Dwell time</td><td>Are readers staying or bouncing?</td><td><code>event_type=session_end, dwell_ms, path</code></td></tr>
+          <tr><td>Scroll depth</td><td>Are users reaching library, quality console, monetization?</td><td><code>event_type=scroll_depth, max_scroll_pct</code></td></tr>
+          <tr><td>Search and filters</td><td>What themes users actively look for.</td><td><code>event_type=filter_change, query, source_type, theme</code></td></tr>
+          <tr><td>Newsletter intent</td><td>Which content converts to repeat audience.</td><td><code>event_type=newsletter_focus/newsletter_submit, path, theme_context</code></td></tr>
+          <tr><td>Sponsor intent</td><td>Which monetization surfaces attract clicks.</td><td><code>event_type=sponsor_click, slot_id, path</code></td></tr>
+          <tr><td>Job-post click</td><td>Which AI + finance roles indicate reader career intent and hiring-market demand?</td><td><code>event_type=job_click, job_id, role_family, skills, finance_domain, location</code></td></tr>
+          <tr><td>Return visitor</td><td>Does the site become a habit?</td><td><code>anonymous_id, session_id, visit_count</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>6.2 Privacy posture</h3>
+      <div class="callout">
+        <strong>Default:</strong> no PII, no fingerprinting, no raw IP stored, no cross-site tracking. Use a random anonymous ID in localStorage. If adding PostHog/Plausible later, keep first-party event logging as the auditable source of truth.
+      </div>
+
+      <h3>6.3 Analytics event type and API route</h3>
+      <pre><code>// lib/analytics.ts
+import { z } from 'zod';
+
+export const AnalyticsEventSchema = z.object({
+  eventType: z.enum([
+    'page_view',
+    'source_click',
+    'filter_change',
+    'scroll_depth',
+    'session_end',
+    'newsletter_focus',
+    'newsletter_submit',
+    'sponsor_click',
+    'job_click',
+  ]),
+  anonymousId: z.string().min(8),
+  sessionId: z.string().min(8),
+  path: z.string(),
+  itemId: z.string().optional(),
+  sourceType: z.string().optional(),
+  theme: z.string().optional(),
+  query: z.string().optional(),
+  rankPosition: z.number().int().optional(),
+  jobId: z.string().optional(),
+  roleFamily: z.string().optional(),
+  financeDomain: z.string().optional(),
+  location: z.string().optional(),
+  dwellMs: z.number().int().nonnegative().optional(),
+  scrollDepth: z.number().int().min(0).max(100).optional(),
+  referrer: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export type AnalyticsEvent = z.infer&lt;typeof AnalyticsEventSchema&gt;;</code></pre>
+
+      <pre><code>// app/api/events/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { appendAnalyticsEvent } from '../../../lib/analyticsStore';
+import { AnalyticsEventSchema } from '../../../lib/analytics';
+
+export async function POST(request: NextRequest) {
+  const payload = await request.json();
+  const parsed = AnalyticsEventSchema.safeParse(payload);
+
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+
+  await appendAnalyticsEvent(parsed.data);
+  return NextResponse.json({ ok: true });
+}</code></pre>
+
+      <h3>6.4 Browser event client</h3>
+      <pre><code>// components/AnalyticsTracker.tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+
+function id(key: string): string {
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const next = crypto.randomUUID();
+  localStorage.setItem(key, next);
+  return next;
+}
+
+function send(event: Record&lt;string, string | number | undefined&gt;) {
+  const anonymousId = id('finance-ai-radar-anonymous-id');
+  const sessionId = id('finance-ai-radar-session-id');
+  navigator.sendBeacon?.('/api/events', JSON.stringify({
+    anonymousId,
+    sessionId,
+    path: location.pathname + location.hash,
+    referrer: document.referrer,
+    createdAt: new Date().toISOString(),
+    ...event,
+  }));
+}
+
+export function AnalyticsTracker() {
+  const startedAt = useRef(Date.now());
+  const maxScroll = useRef(0);
+
+  useEffect(() =&gt; {
+    send({ eventType: 'page_view' });
+
+    const onScroll = () =&gt; {
+      const height = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = height &lt;= 0 ? 100 : Math.round((window.scrollY / height) * 100);
+      maxScroll.current = Math.max(maxScroll.current, pct);
+    };
+
+    const onBeforeUnload = () =&gt; {
+      send({
+        eventType: 'session_end',
+        dwellMs: Date.now() - startedAt.current,
+        scrollDepth: maxScroll.current,
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () =&gt; {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+  }, []);
+
+  return null;
+}</code></pre>
+
+      <h3>6.5 Click instrumentation on source cards</h3>
+      <pre><code>// components/TrackedSourceLink.tsx
+'use client';
+
+type Props = {
+  href: string;
+  itemId: string;
+  sourceType: string;
+  theme: string;
+  rankPosition?: number;
+  children: React.ReactNode;
+};
+
+export function TrackedSourceLink({ href, itemId, sourceType, theme, rankPosition, children }: Props) {
+  return (
+    &lt;a
+      href={href}
+      onClick={() =&gt; {
+        navigator.sendBeacon('/api/events', JSON.stringify({
+          eventType: 'source_click',
+          anonymousId: localStorage.getItem('finance-ai-radar-anonymous-id') ?? crypto.randomUUID(),
+          sessionId: localStorage.getItem('finance-ai-radar-session-id') ?? crypto.randomUUID(),
+          path: location.pathname + location.hash,
+          itemId,
+          sourceType,
+          theme,
+          rankPosition,
+          createdAt: new Date().toISOString(),
+        }));
+      }}
+    &gt;
+      {children}
+    &lt;/a&gt;
+  );
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>7. Daily Reflection Agent and Implementation Agent Loop</h2>
+      <p>The loop should convert metrics into operating knowledge, then into tested code changes. Default to the smallest change that can validate a hypothesis, but allow larger implementation work when metrics show a structural product gap, such as needing a jobs vertical, dataset pages, or a major ranking/navigation redesign.</p>
+
+      <h3>7.1 AGENTS.md as the living operating document</h3>
+      <p>Create <code>finance-ai-radar/AGENTS.md</code> as the agent-readable operating guide. The daily reflection agent may update only specific sections.</p>
+      <pre><code># Finance AI Radar Operating Guide
+
+## Mission
+Become the highest-signal AI-in-finance aggregator for practitioners, builders, and finance researchers.
+
+## Editorial Rule
+Do not publish an item unless it has: source link, finance use case, why it matters, caveat, license/rights note, and review status.
+
+## Current Learning
+- Keep this section evidence-backed. Every bullet must cite a date and metric snapshot.
+
+## Ranking Heuristics
+- Prefer primary sources, maintained GitHub repos, public datasets, regulators, reproducible papers, and practitioner discussions with clear caveats.
+
+## Dataset Priorities
+- Prioritize public-domain or clearly licensed finance/NLP datasets: SEC EDGAR, FRED, CFPB, BIS, World Bank, Hugging Face dataset cards, Kaggle datasets with clear provenance.
+
+## Daily Loop Rules
+- Reflection agent may update Current Learning, Ranking Heuristics, Dataset Priorities, Jobs Intelligence Priorities, and Experiment Backlog.
+- Implementation agent may execute one coherent change per run. It can be small or large, but it must be scoped by a written hypothesis, verification plan, and rollback note.
+- Every change needs tests, typecheck, lint, build, and a reflection ledger row.
+- Never republish proprietary broker research or NDA/expert-call content.
+
+## Jobs Intelligence Priorities
+- Track roles that combine AI and finance: AI research analyst, quant ML engineer, financial NLP engineer, model risk AI specialist, compliance AI product manager, credit ML scientist, bank AI transformation lead, and investment data scientist.
+- Treat jobs as demand-side evidence: hiring patterns reveal which AI-in-finance workflows have budget, urgency, and repeatable buyer pain.
+- Prefer public job posts with clear role requirements, employer, location, seniority, tools, and finance domain. Do not scrape personal data.
+
+## Experiment Backlog
+- [x] Improve theme cards based on highest-clicked theme.
+- [x] Add dataset page and navigation for dataset exploration.
+- [x] Add source-specific landing pages for datasets, Hugging Face, jobs, and review queue.
+- [x] Add an AI + Finance Jobs page for career-intent and demand-side intelligence.
+- [x] Add a hiring signal module that summarizes role titles, required skills, sectors, and geographies without copying full job descriptions.</code></pre>
+
+      <h3>7.2 Metrics summarizer script</h3>
+      <pre><code># scripts/summarize_metrics.py
+import csv
+import json
+from collections import Counter, defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+EVENTS = ROOT / "data" / "analytics_events.tsv"
+OUTPUT = ROOT / "data" / "daily_metrics.json"
+
+MIN_DWELL_MS = 15_000
+
+def main() -&gt; None:
+    if not EVENTS.exists():
+        OUTPUT.write_text(json.dumps({"status": "no_events"}, indent=2))
+        return
+
+    clicks = Counter()
+    source_clicks = Counter()
+    theme_clicks = Counter()
+    sessions = set()
+    dwell_by_path = defaultdict(list)
+    scroll_depths = []
+
+    with EVENTS.open(newline="") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            sessions.add(row.get("session_id", ""))
+            event_type = row.get("event_type")
+            if event_type == "source_click":
+                clicks[row.get("item_id", "")] += 1
+                source_clicks[row.get("source_type", "")] += 1
+                theme_clicks[row.get("theme", "")] += 1
+            if event_type == "session_end":
+                dwell = int(row.get("dwell_ms") or 0)
+                dwell_by_path[row.get("path", "/")].append(dwell)
+                if row.get("scroll_depth"):
+                    scroll_depths.append(int(row["scroll_depth"]))
+
+    def average(values: list[int]) -&gt; int:
+        return round(sum(values) / len(values)) if values else 0
+
+    summary = {
+        "sessions": len([s for s in sessions if s]),
+        "total_source_clicks": sum(clicks.values()),
+        "top_items": clicks.most_common(10),
+        "top_source_types": source_clicks.most_common(10),
+        "top_themes": theme_clicks.most_common(10),
+        "average_scroll_depth": average(scroll_depths),
+        "high_intent_paths": [
+            {"path": path, "avg_dwell_ms": average(values), "sessions": len(values)}
+            for path, values in dwell_by_path.items()
+            if average(values) &gt;= MIN_DWELL_MS
+        ],
+    }
+    OUTPUT.write_text(json.dumps(summary, indent=2))
+    print(json.dumps(summary, indent=2))
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+      <h3>7.3 Hermes cron: reflection job</h3>
+      <p>Use Hermes cron with the project working directory so the job loads <code>AGENTS.md</code>. The prompt must be self-contained because cron jobs run without chat context.</p>
+      <pre><code>hermes cron create "0 23 * * *" \
+  --name "finance-ai-radar-daily-reflection" \
+  --workdir "/Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar" \
+  --toolsets terminal,file \
+  --prompt "You are the Finance AI Radar reflection agent. First run python3 scripts/summarize_metrics.py. Read data/daily_metrics.json, data/review_queue.tsv, data/source_ledger.tsv, and AGENTS.md. Update only AGENTS.md sections Current Learning, Ranking Heuristics, Dataset Priorities, Jobs Intelligence Priorities, and Experiment Backlog. Every new lesson must cite concrete metrics from daily_metrics.json. If there are no events, add no learning and report no-op. Do not edit application code."</code></pre>
+
+      <p>Equivalent via the Hermes API/tool concept:</p>
+      <pre><code>cronjob({
+  action: 'create',
+  name: 'finance-ai-radar-daily-reflection',
+  schedule: '0 23 * * *',
+  workdir: '/Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar',
+  enabled_toolsets: ['terminal', 'file'],
+  prompt: `You are the Finance AI Radar reflection agent. Run python3 scripts/summarize_metrics.py. Read data/daily_metrics.json, data/review_queue.tsv, data/source_ledger.tsv, and AGENTS.md. Update only AGENTS.md learning/backlog sections. Cite concrete metrics. Do not edit application code.`
+})</code></pre>
+
+      <h3>7.4 Hermes cron: implementation agent</h3>
+      <p>Run after reflection, ideally in a branch/worktree. It should implement one coherent backlog item, then verify. The item may be a small copy/ranking tweak or a larger feature/refactor if the metrics-backed hypothesis requires it.</p>
+      <pre><code>hermes cron create "30 23 * * *" \
+  --name "finance-ai-radar-implementation-agent" \
+  --workdir "/Users/nyp/Documents/my_life/scratch my itch to learn and prosper/finance-ai-radar" \
+  --skills test-driven-development \
+  --toolsets terminal,file \
+  --prompt "You are the Finance AI Radar implementation agent. Read AGENTS.md, data/daily_metrics.json, and tests. Select exactly one unchecked Experiment Backlog item that is supported by metrics. Prefer small changes, but you may make a larger coherent change when AGENTS.md and daily_metrics.json justify the scope. Use TDD: write failing tests for the changed behavior, verify failure, implement the code, run npm run lint && npm test && npm run typecheck && npm run build. Update data/daily_reflections.tsv with the metric, hypothesis, files changed, and verification output. If no safe metric-backed change exists, do nothing and report no-op."</code></pre>
+
+      <div class="callout danger">
+        <strong>Guardrail:</strong> the implementation job should start as <em>local-only</em>. Do not auto-deploy until the loop has produced several correct, verified changes. Later, have it open pull requests instead of modifying main directly.
+      </div>
+    </section>
+
+    <section>
+      <h2>8. Implementation Plan: Bite-Sized Tasks</h2>
+      <p>Use TDD for code-bearing tasks. Each task should leave the app buildable.</p>
+
+      <h3>Phase A — Queue foundations</h3>
+      <ul class="checklist">
+        <li>✅ Create <code>data/review_queue.tsv</code> with headers and two sample candidates.</li>
+        <li>✅ Add <code>lib/reviewQueue.ts</code> with Zod schema and parse helpers.</li>
+        <li>✅ Add tests in <code>tests/reviewQueue.test.ts</code> for valid rows, missing license, duplicate ID detection, and publishability.</li>
+        <li>✅ Add <code>lib/reviewQueueStore.ts</code> to read TSV rows into typed candidates.</li>
+        <li>✅ Add <code>app/review/page.tsx</code> local review page.</li>
+        <li>✅ Verify with <code>npm run lint && npm test && npm run typecheck && npm run build</code>.</li>
+      </ul>
+
+      <h3>Phase B — Dataset ingestion</h3>
+      <ul class="checklist">
+        <li>✅ Extend <code>SourceType</code> with <code>kaggle</code>, <code>huggingface_dataset</code>, and <code>regulator</code>.</li>
+        <li>✅ Add source labels and source-count tests.</li>
+        <li>✅ Create <code>scripts/ingest_hf_datasets.py</code>; verify it writes candidates without requiring secrets.</li>
+        <li>✅ Create <code>scripts/ingest_kaggle.py</code>; gracefully skip if Kaggle CLI credentials are missing.</li>
+        <li>✅ Add 5 manually reviewed public finance/NLP datasets to <code>sourceItems.ts</code> and <code>source_ledger.tsv</code>.</li>
+        <li>✅ Add dataset theme tests: dataset source counts, license note required, leakage risk required.</li>
+      </ul>
+
+
+
+      <h3>Phase B2 — Hugging Face models and papers</h3>
+      <ul class="checklist">
+        <li>✅ Extend <code>SourceType</code> with <code>huggingface_model</code> and <code>huggingface_paper</code>.</li>
+        <li>✅ Add Hugging Face model metadata: task, model family, license, finance adaptation, deployment fit, and model risks.</li>
+        <li>✅ Add Hugging Face paper metadata: linked models, linked datasets, method type, reproducibility, and finance domains.</li>
+        <li>✅ Create <code>scripts/ingest_hf_models.py</code> and <code>scripts/ingest_hf_papers.py</code> to stage candidates into <code>review_queue.tsv</code>.</li>
+        <li>✅ Add reviewed FinBERT, finance embedding, FinGPT, and financial sentiment paper sources to <code>sourceItems.ts</code> and <code>source_ledger.tsv</code>.</li>
+        <li>✅ Add <code>/huggingface</code> page and tests for Hugging Face source counts, labels, and search.</li>
+      </ul>
+
+      <h3>Phase C — Jobs intelligence</h3>
+      <ul class="checklist">
+        <li>✅ Add <code>data/jobs_ledger.tsv</code> headers and a few manually reviewed AI + finance job examples.</li>
+        <li>✅ Add <code>SourceType = 'job'</code>, <code>JobMetadata</code>, and tests for job source counts.</li>
+        <li>✅ Create <code>scripts/ingest_jobs.py</code> for manual CSV ingestion first; only add scraped/API sources when terms permit.</li>
+        <li>✅ Add <code>/jobs</code> page with filters for role family, seniority, location, skills, and finance domain.</li>
+        <li>✅ Add “Hiring signal” summary cards that connect job demand to learning resources and curated content themes.</li>
+      </ul>
+
+      <h3>Phase D — Analytics loop</h3>
+      <ul class="checklist">
+        <li>✅ Add <code>lib/analytics.ts</code> schema and <code>tests/analytics.test.ts</code>.</li>
+        <li>✅ Add <code>lib/analyticsStore.ts</code> TSV append logic with newline-safe serialization.</li>
+        <li>✅ Add <code>app/api/events/route.ts</code>.</li>
+        <li>✅ Add <code>components/AnalyticsTracker.tsx</code> to app root.</li>
+        <li>✅ Add <code>components/TrackedSourceLink.tsx</code> and use it inside <code>ContentCard</code>.</li>
+        <li>✅ Instrument filters, newsletter focus/submit, sponsor links, and job-post clicks.</li>
+        <li>✅ Browser-verify events write to <code>data/analytics_events.tsv</code>.</li>
+      </ul>
+
+      <h3>Phase E — Reflection and agent execution</h3>
+      <ul class="checklist">
+        <li>✅ Create <code>AGENTS.md</code> with mission, editorial rule, current learning, ranking heuristics, dataset priorities, jobs intelligence priorities, daily loop rules, and backlog. Do not include a changelog section.</li>
+        <li>✅ Create <code>scripts/summarize_metrics.py</code> and test it with fixture events.</li>
+        <li>✅ Create <code>data/daily_reflections.tsv</code> with headers.</li>
+        <li>✅ Create reflection cron job but keep implementation cron paused for the first day.</li>
+        <li>✅ After reflection no-op/quality is verified, enable implementation cron in local-only mode.</li>
+        <li>✅ Require implementation job to update <code>daily_reflections.tsv</code> and pass lint/test/typecheck/build.</li>
+      </ul>
+
+      <h3>Phase F — UX improvements powered by loop</h3>
+      <ul class="checklist">
+        <li>✅ Add <code>/datasets</code> page if dataset clicks or searches are high.</li>
+        <li>✅ Add theme pages for top-clicked themes.</li>
+        <li>✅ Add “Most clicked this week” module, but only after enough event volume exists.</li>
+        <li>✅ Add sponsor reporting once sponsor slots are clicked enough to sell.</li>
+        <li>✅ Add quality console metric for queue size, stale candidates, and dataset coverage.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. Testing Strategy</h2>
+      <table>
+        <thead><tr><th>Area</th><th>Test file</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr><td>Review queue</td><td><code>tests/reviewQueue.test.ts</code></td><td>Parses TSV, rejects missing required fields, deduplicates URLs, gates publishability.</td></tr>
+          <tr><td>Dataset sources</td><td><code>tests/library.test.ts</code></td><td>Counts Kaggle/HF/regulator datasets, requires license and leakage caveat.</td></tr>
+          <tr><td>Analytics schema</td><td><code>tests/analytics.test.ts</code></td><td>Accepts known event types, rejects PII fields and invalid dwell/scroll values.</td></tr>
+          <tr><td>Metrics summary</td><td><code>tests/scripts/summarizeMetrics.test.ts</code></td><td>Computes top items, source types, themes, average scroll, and high-intent paths.</td></tr>
+          <tr><td>Browser flow</td><td>Manual browser verification</td><td>Click source card, change filters, leave page, confirm event rows are written.</td></tr>
+        </tbody>
+      </table>
+      <pre><code>npm run lint
+npm test
+npm run typecheck
+npm run build
+python3 scripts/ingest_hf_datasets.py
+python3 scripts/ingest_hf_models.py
+python3 scripts/ingest_hf_papers.py
+python3 scripts/summarize_metrics.py</code></pre>
+    </section>
+
+    <section>
+      <h2>10. Acceptance Criteria</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>Workflow and review queue</h3>
+          <ul>
+            <li>New discovered items land in <code>review_queue.tsv</code>, not directly on homepage.</li>
+            <li>Review page renders candidates with status, source type, URL, relevance reason, and license guess.</li>
+            <li>Tests prevent publishable items without license note and caveat.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Datasets</h3>
+          <ul>
+            <li>Kaggle and Hugging Face dataset candidates can be ingested.</li>
+            <li>At least 5 reviewed public finance/NLP datasets are published.</li>
+            <li>Dataset cards show access mode, license, NLP use case, and leakage risk.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Hugging Face intelligence</h3>
+          <ul>
+            <li>Hugging Face datasets, models, and papers are first-class source types.</li>
+            <li>Model cards show task, family, license, deployment fit, and model risks.</li>
+            <li>Paper cards show linked assets, method type, reproducibility, and finance domains.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Jobs intelligence</h3>
+          <ul>
+            <li>AI + finance jobs are tracked as a first-class source type.</li>
+            <li>Job posts include role family, skills, finance domain, location, freshness, and sponsor status.</li>
+            <li>Hiring signals connect back to datasets, papers, repos, and learning paths.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Analytics</h3>
+          <ul>
+            <li>Page views, source clicks, filter changes, dwell time, scroll depth, sponsor clicks, and newsletter intent are logged.</li>
+            <li>No raw PII or raw IP addresses are stored.</li>
+            <li>Daily metrics can be summarized from the event ledger.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Closed loop</h3>
+          <ul>
+            <li>Reflection cron updates only permitted sections of <code>AGENTS.md</code>.</li>
+            <li>Implementation cron executes at most one metric-backed change.</li>
+            <li>Every automated change passes lint, tests, typecheck, build, and logs a reflection row.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>11. First Three Concrete Build Steps</h2>
+      <ol>
+        <li><strong>Build the queue:</strong> add <code>review_queue.tsv</code>, typed parser, tests, and local review page.</li>
+        <li><strong>Add datasets:</strong> extend source taxonomy and ingest Hugging Face/Kaggle dataset candidates into the queue.</li>
+        <li><strong>Add jobs intelligence:</strong> add <code>jobs_ledger.tsv</code>, a manual ingestion path, and a <code>/jobs</code> page for AI + finance opportunities.</li>
+        <li><strong>Add analytics:</strong> write first-party event API and instrument source clicks/dwell/scroll/job clicks so the first reflection agent has real data.</li>
+      </ol>
+      <div class="callout ok">
+        <strong>Recommended next action:</strong> all phases have been implemented with strict TDD, Hugging Face models/papers added, verification completed, and the remaining next action is to monitor real usage before changing ranking.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

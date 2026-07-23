@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI in Finance Curated Landing Page — Implementation Plan</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: #0d1b2f;
+      --panel-2: #10243d;
+      --text: #e8f1ff;
+      --muted: #9db1cc;
+      --line: #203a5d;
+      --accent: #58e6c0;
+      --accent-2: #7aa7ff;
+      --warn: #ffd166;
+      --danger: #ff7a90;
+      --code: #05101d;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(88,230,192,.14), transparent 34rem),
+        radial-gradient(circle at 82% 8%, rgba(122,167,255,.16), transparent 32rem),
+        linear-gradient(180deg, #07111f 0%, #081322 45%, #050b14 100%);
+      color: var(--text);
+      font: 16px/1.62 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 48px 24px 96px; }
+    header.hero {
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(16,36,61,.92), rgba(7,17,31,.92));
+      border-radius: 28px;
+      padding: 44px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    header.hero:after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -70px;
+      top: -90px;
+      background: radial-gradient(circle, rgba(88,230,192,.22), transparent 70%);
+      pointer-events: none;
+    }
+    .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .16em; font-weight: 800; font-size: 12px; }
+    h1 { font-size: clamp(36px, 5vw, 64px); line-height: 1.02; margin: 12px 0 18px; letter-spacing: -.04em; }
+    h2 { margin-top: 48px; font-size: 30px; line-height: 1.18; letter-spacing: -.025em; }
+    h3 { margin-top: 28px; font-size: 21px; }
+    h4 { margin: 20px 0 8px; color: var(--accent-2); }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    .hero p { max-width: 820px; font-size: 18px; }
+    .grid { display: grid; gap: 18px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(13,27,47,.78);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+    .card h3 { margin-top: 0; }
+    .tag { display: inline-flex; border: 1px solid rgba(88,230,192,.38); color: var(--accent); padding: 3px 9px; border-radius: 999px; font-size: 12px; margin: 3px 4px 3px 0; }
+    .callout { border-left: 4px solid var(--accent); background: rgba(88,230,192,.08); padding: 16px 18px; border-radius: 14px; }
+    .warning { border-left-color: var(--warn); background: rgba(255,209,102,.09); }
+    .danger { border-left-color: var(--danger); background: rgba(255,122,144,.09); }
+    pre { overflow-x: auto; background: var(--code); border: 1px solid #173252; border-radius: 16px; padding: 18px; color: #d8eaff; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    th, td { border-bottom: 1px solid var(--line); padding: 12px 14px; vertical-align: top; }
+    th { background: rgba(122,167,255,.12); text-align: left; color: var(--text); }
+    td { color: var(--muted); }
+    .phase { counter-increment: phase; }
+    .phase h3:before { content: counter(phase) ". "; color: var(--accent); }
+    .admock { border: 1px dashed rgba(88,230,192,.65); background: rgba(88,230,192,.07); border-radius: 18px; padding: 18px; text-align: center; color: var(--accent); font-weight: 700; }
+    .checklist li { margin: 8px 0; }
+    @media (max-width: 860px) { .grid.two, .grid.three { grid-template-columns: 1fr; } header.hero { padding: 28px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div class="eyebrow">Plan: scratch my itch to learn and prosper</div>
+      <h1>AI in Finance Intelligence Landing Page</h1>
+      <p><strong>Goal:</strong> Build a highly curated website for applied AI in finance: papers, arXiv, SSRN, Reddit discussions, news, blogs, GitHub repositories, broker research pointers, expert-call notes, datasets, tools, and investor/operator explainers. The site should start as a fast landing page plus weekly digest, then mature into a searchable intelligence product with sponsorship and paid research paths.</p>
+      <p><strong>North star:</strong> become the first page a finance practitioner opens when asking, “What is actually useful, investable, or career-relevant in AI x finance this week?”</p>
+    </header>
+
+    <section>
+      <h2>1. Product Thesis</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>Audience</h3>
+          <ul>
+            <li>Fund analysts, PMs, strategists, quant researchers, fintech founders, banking innovation teams.</li>
+            <li>AI builders looking for finance-specific workflows, benchmarks, adoption signals, and distribution.</li>
+            <li>Students and career-switchers trying to learn “AI in finance” without drowning in generic AI content.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Positioning</h3>
+          <p>Not another AI news site. This is a <strong>curated intelligence layer</strong> that filters public and semi-public information into finance-relevant themes: alpha research, risk, compliance, lending, wealth, market structure, workflows, data, agents, fraud, insurance, and operations.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>Editorial promise:</strong> every item gets a short human-auditable rationale: why it matters, who should care, finance use case, maturity, risks, and links to source material. The value is judgment, not volume.
+      </div>
+    </section>
+
+    <section>
+      <h2>2. MVP Website Shape</h2>
+      <div class="grid three">
+        <div class="card">
+          <h3>Homepage</h3>
+          <p>Hero, “this week’s most useful AI-finance reads,” source tabs, sponsor slot, newsletter signup, paid briefing CTA.</p>
+        </div>
+        <div class="card">
+          <h3>Library</h3>
+          <p>Searchable cards grouped by papers, discussions, news, datasets, tools, expert commentary, case studies.</p>
+        </div>
+        <div class="card">
+          <h3>Theme Pages</h3>
+          <p>Persistent pages for “LLMs for equity research,” “AI agents in banking,” “synthetic data,” “risk/compliance,” “market microstructure.”</p>
+        </div>
+      </div>
+
+      <h3>Landing page wireframe</h3>
+      <pre><code>&lt;main&gt;
+  &lt;Hero headline="Applied AI in Finance, Curated" /&gt;
+  &lt;SponsorBanner slot="top" /&gt;
+  &lt;FeaturedBrief items={topPicksThisWeek} /&gt;
+  &lt;SourceTabs sources={["Papers", "GitHub", "Reddit", "News", "Blogs", "SSRN", "Broker", "Expert Calls"]} /&gt;
+  &lt;ThemeGrid themes={financeAiThemes} /&gt;
+  &lt;NewsletterSignup /&gt;
+  &lt;SponsorBanner slot="mid" /&gt;
+  &lt;PaidBriefingCta /&gt;
+&lt;/main&gt;</code></pre>
+
+      <div class="admock">Sponsor / monetization space: “Reach AI-forward finance professionals”</div>
+    </section>
+
+    <section>
+      <h2>3. Content Taxonomy</h2>
+      <table>
+        <thead><tr><th>Category</th><th>Examples</th><th>Curation angle</th><th>Legal/compliance notes</th></tr></thead>
+        <tbody>
+          <tr><td>Papers</td><td>arXiv, SSRN, NBER, academic pages</td><td>Novel method, benchmark, dataset, finance domain fit</td><td>Link to source; store metadata and short commentary, not copyrighted full text unless licensed/open.</td></tr>
+          <tr><td>Reddit / forums</td><td>r/algotrading, r/MachineLearning, r/quant, Hacker News</td><td>What practitioners are actually debating</td><td>Respect API terms; quote sparingly; prefer summaries and links.</td></tr>
+          <tr><td>News / blogs</td><td>Finextra, The Banker, company engineering blogs, VC blogs</td><td>Adoption signals, product launches, regulation, failures</td><td>Use title, URL, author, excerpt under fair use; avoid reposting articles.</td></tr>
+          <tr><td>Broker research</td><td>Public broker notes, report metadata, analyst calls mentioned publicly</td><td>Market framing, stock baskets, industry adoption narratives</td><td>Do not upload or republish proprietary PDFs. Store citation metadata and personal notes only if rights permit.</td></tr>
+          <tr><td>Expert calls</td><td>Public webinars, podcasts, conference talks, authorized call notes</td><td>Operational detail, adoption bottlenecks, procurement signals</td><td>Only include content you own, public transcripts, or licensed notes.</td></tr>
+          <tr><td>GitHub repositories</td><td>Open-source repos, examples, demos, eval harnesses, fintech AI tools</td><td>Stars are not enough: inspect commits, issues, license, docs, reproducibility, and finance-specific examples.</td><td>Track license, do not copy code into the site unless license permits; link to repo and quote README sparingly.</td></tr>
+          <tr><td>Tools / datasets</td><td>APIs, benchmarks, public-domain text datasets, model eval sets</td><td>Can readers reproduce, build, or benchmark with this?</td><td>Track licenses clearly.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. Recommended Tech Stack</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>Fast MVP</h3>
+          <ul>
+            <li><strong>Next.js + TypeScript</strong> for landing pages and SEO.</li>
+            <li><strong>Tailwind CSS</strong> for speed and responsive layouts.</li>
+            <li><strong>SQLite + Prisma</strong> locally, upgradeable to Postgres.</li>
+            <li><strong>Vercel</strong> for hosting and scheduled functions.</li>
+            <li><strong>Resend / Buttondown / Beehiiv</strong> for newsletter capture.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Data / curation layer</h3>
+          <ul>
+            <li>Python ingestion scripts for arXiv, RSS, Reddit, SSRN metadata search, and custom URLs.</li>
+            <li>LLM-assisted summarization with strict source citations.</li>
+            <li>Editorial review queue before publication.</li>
+            <li>Unified TSV ledger for source auditability and manual corrections.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Repository Structure</h2>
+      <pre><code>scratch my itch to learn and prosper/
+  plan_financepage.html
+  finance-ai-curator/
+    README.md
+    package.json
+    next.config.ts
+    prisma/
+      schema.prisma
+    app/
+      page.tsx
+      library/page.tsx
+      themes/[slug]/page.tsx
+      api/subscribe/route.ts
+    components/
+      Hero.tsx
+      SponsorBanner.tsx
+      ContentCard.tsx
+      SourceTabs.tsx
+      NewsletterSignup.tsx
+      MonetizationCta.tsx
+    data/
+      source_ledger.tsv
+      themes.json
+      sponsors.json
+    scripts/
+      ingest_arxiv.py
+      ingest_rss.py
+      ingest_reddit.py
+      ingest_github.py
+      score_items.py
+      publish_digest.py
+    tests/
+      test_scoring.py
+      test_ingestion_contract.py</code></pre>
+    </section>
+
+    <section>
+      <h2>6. Core Data Model</h2>
+      <p>Keep the first version simple. One canonical <code>Item</code> table can handle papers, posts, news, calls, and tools. Add richer tables only when the data proves the need.</p>
+      <pre><code>// prisma/schema.prisma
+model Item {
+  id              String   @id @default(cuid())
+  sourceType      String   // arxiv, ssrn, reddit, news, blog, github, broker, expert_call, dataset, tool
+  title           String
+  url             String   @unique
+  authors         String?
+  publisher       String?
+  publishedAt     DateTime?
+  discoveredAt    DateTime @default(now())
+  summary         String
+  whyItMatters    String
+  financeUseCase  String
+  aiTechnique     String?
+  themes          String   // comma-separated for MVP; normalize later
+  audience        String   // analyst, PM, quant, banker, founder, student
+  maturity        String   // research, prototype, production, vendor, regulation
+  score           Int      @default(0)
+  licenseNote     String?
+  reviewStatus    String   @default("draft") // draft, reviewed, published, rejected
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}</code></pre>
+
+      <h3>Human-auditable source ledger</h3>
+      <pre><code># data/source_ledger.tsv
+item_id	source_type	title	url	discovered_at	evidence_type	finance_use_case	ai_technique	why_it_matters	risk_or_caveat	license_note	review_status	human_notes
+arxiv-2401-00001	arxiv	LLM Agents for Portfolio Research	https://arxiv.org/abs/...	2026-06-03	paper	equity research workflow	LLM agents	Shows a reproducible research assistant architecture	Backtest not live; needs leakage checks	arXiv license; link only	reviewed	Good candidate for weekly digest
+github-owner-repo	github	Open-source AI equity research agent	https://github.com/owner/repo	2026-06-03	repository	research automation	RAG + agents	Readable implementation pattern for analyst workflows	Check license, maintenance, and hallucination controls	MIT; link only unless excerpting with attribution	reviewed	Test locally before recommending</code></pre>
+    </section>
+
+    <section>
+      <h2>7. Source Ingestion Plan</h2>
+      <div class="phase">
+        <h3>arXiv</h3>
+        <p>Use the public arXiv API with queries that combine AI terms and finance terms. Persist metadata, abstract, categories, and URL.</p>
+        <pre><code># scripts/ingest_arxiv.py
+import feedparser
+import urllib.parse
+from datetime import datetime, timezone
+
+AI_TERMS = '("large language model" OR LLM OR agent OR transformer OR diffusion OR "machine learning")'
+FINANCE_TERMS = '(finance OR financial OR portfolio OR trading OR banking OR credit OR risk OR insurance)'
+QUERY = f'all:{AI_TERMS} AND all:{FINANCE_TERMS}'
+
+url = 'http://export.arxiv.org/api/query?' + urllib.parse.urlencode({
+    'search_query': QUERY,
+    'start': 0,
+    'max_results': 25,
+    'sortBy': 'submittedDate',
+    'sortOrder': 'descending',
+})
+feed = feedparser.parse(url)
+
+rows = []
+for entry in feed.entries:
+    rows.append({
+        'source_type': 'arxiv',
+        'title': entry.title.strip().replace('\n', ' '),
+        'url': entry.link,
+        'authors': ', '.join(author.name for author in entry.authors),
+        'published_at': entry.published,
+        'summary': entry.summary.strip().replace('\n', ' '),
+        'discovered_at': datetime.now(timezone.utc).isoformat(),
+    })
+print(rows)</code></pre>
+      </div>
+
+      <div class="phase">
+        <h3>RSS / news / blogs</h3>
+        <p>Maintain a curated list of RSS feeds and URLs. Examples: fintech news sites, company engineering blogs, AI lab blogs, bank innovation blogs, regulator feeds, VC newsletters.</p>
+        <pre><code># data/rss_sources.json
+[
+  { "name": "Finextra AI", "url": "https://www.finextra.com/rss/headlines.aspx", "tags": ["fintech", "banking"] },
+  { "name": "OpenAI Blog", "url": "https://openai.com/news/rss.xml", "tags": ["ai_lab"] },
+  { "name": "Anthropic News", "url": "https://www.anthropic.com/news/rss.xml", "tags": ["ai_lab"] }
+]</code></pre>
+      </div>
+
+      <div class="phase">
+        <h3>Reddit / discussion sources</h3>
+        <p>Start with manual links or official API access. Avoid brittle scraping. Track which discussions are signal versus noise.</p>
+        <pre><code>SUBREDDITS = [
+  'algotrading',
+  'quant',
+  'financialindependence',
+  'MachineLearning',
+  'LocalLLaMA',
+  'datascience'
+]
+KEYWORDS = ['finance', 'trading', 'portfolio', 'banking', 'risk', 'credit', 'Bloomberg', 'FactSet']</code></pre>
+      </div>
+
+      <div class="phase">
+        <h3>GitHub repositories</h3>
+        <p>GitHub should be treated as a first-class source because repos reveal what builders are actually shipping: research agents, SEC filing parsers, portfolio optimizers, LLM eval harnesses, open-source fintech tools, and data connectors.</p>
+        <pre><code># scripts/ingest_github.py
+import os
+import requests
+
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
+HEADERS = {'Accept': 'application/vnd.github+json'}
+if GITHUB_TOKEN:
+    HEADERS['Authorization'] = f'Bearer {GITHUB_TOKEN}'
+
+QUERIES = [
+    'ai finance language:Python stars:&gt;20 pushed:&gt;2025-01-01',
+    'llm investment research stars:&gt;10 pushed:&gt;2025-01-01',
+    'sec filings llm stars:&gt;10 pushed:&gt;2025-01-01',
+    'portfolio optimization machine learning stars:&gt;20 pushed:&gt;2025-01-01',
+    'financial agent langchain OR llamaindex stars:&gt;10 pushed:&gt;2025-01-01',
+]
+
+def search_repos(query: str) -&gt; list[dict]:
+    response = requests.get(
+        'https://api.github.com/search/repositories',
+        headers=HEADERS,
+        params={'q': query, 'sort': 'updated', 'order': 'desc', 'per_page': 10},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()['items']
+
+def repo_health_score(repo: dict) -&gt; int:
+    stars = min(repo['stargazers_count'], 500) / 500
+    issues = 1 if repo.get('open_issues_count', 0) &lt; 50 else 0.5
+    has_description = 1 if repo.get('description') else 0
+    has_license = 1 if repo.get('license') else 0
+    return round((stars * 35 + issues * 20 + has_description * 20 + has_license * 25))
+
+for query in QUERIES:
+    for repo in search_repos(query):
+        item = {
+            'source_type': 'github',
+            'title': repo['full_name'],
+            'url': repo['html_url'],
+            'summary': repo.get('description') or '',
+            'publisher': 'GitHub',
+            'score': repo_health_score(repo),
+            'license_note': (repo.get('license') or {}).get('spdx_id', 'NOASSERTION'),
+        }
+        print(item)</code></pre>
+        <div class="callout warning"><strong>GitHub curation rule:</strong> do not rank by stars alone. Require a finance-specific use case, recent maintenance, clear license, reproducible README, and a note on whether it is demo-quality or production-quality.</div>
+      </div>
+
+      <div class="phase">
+        <h3>Broker research and expert calls</h3>
+        <p>Use a conservative rights-first workflow. The site should never become a warehouse of copyrighted research PDFs. Instead, capture public metadata, your own original takeaways, and links to the vendor or publication when allowed.</p>
+        <div class="callout warning"><strong>Rule:</strong> if the content is proprietary or under NDA, do not publish it. Publish your own high-level theme notes only when allowed and never reveal restricted details.</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>8. Scoring and Editorial Workflow</h2>
+      <p>Each item should receive a transparent score so the homepage can surface the best items without becoming random.</p>
+      <table>
+        <thead><tr><th>Factor</th><th>Weight</th><th>Question</th></tr></thead>
+        <tbody>
+          <tr><td>Finance relevance</td><td>30%</td><td>Does it directly change a finance workflow, product, market, or research method?</td></tr>
+          <tr><td>Novelty</td><td>20%</td><td>Is there a non-obvious method, dataset, adoption signal, or market implication?</td></tr>
+          <tr><td>Actionability</td><td>20%</td><td>Can a reader test, build, cite, buy, avoid, or monitor something from it?</td></tr>
+          <tr><td>Evidence quality</td><td>20%</td><td>Is the claim backed by data, implementation detail, credible source, or reproducible code?</td></tr>
+          <tr><td>Timeliness</td><td>10%</td><td>Is it new, newly relevant, or attached to a live market/regulatory theme?</td></tr>
+        </tbody>
+      </table>
+      <pre><code># scripts/score_items.py
+def score_item(item: dict) -> int:
+    finance = item.get('finance_relevance', 0)
+    novelty = item.get('novelty', 0)
+    actionability = item.get('actionability', 0)
+    evidence = item.get('evidence_quality', 0)
+    timeliness = item.get('timeliness', 0)
+    weighted = (
+        finance * 0.30 +
+        novelty * 0.20 +
+        actionability * 0.20 +
+        evidence * 0.20 +
+        timeliness * 0.10
+    )
+    return round(weighted * 20)  # 0-100 scale</code></pre>
+    </section>
+
+    <section>
+      <h2>9. Homepage Component Snippets</h2>
+      <h3>Hero</h3>
+      <pre><code>// components/Hero.tsx
+export function Hero() {
+  return (
+    &lt;section className="mx-auto max-w-6xl px-6 py-20"&gt;
+      &lt;p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-300"&gt;
+        Applied AI in Finance
+      &lt;/p&gt;
+      &lt;h1 className="mt-4 max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-7xl"&gt;
+        The signal layer for AI that actually matters in finance.
+      &lt;/h1&gt;
+      &lt;p className="mt-6 max-w-2xl text-lg text-slate-300"&gt;
+        Papers, practitioner debates, market notes, GitHub repositories, datasets, tools, and expert commentary curated for analysts, quants, bankers, and AI builders.
+      &lt;/p&gt;
+      &lt;form className="mt-8 flex max-w-xl gap-3" action="/api/subscribe" method="post"&gt;
+        &lt;input name="email" type="email" required placeholder="you@fund.com" className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white" /&gt;
+        &lt;button className="rounded-xl bg-emerald-300 px-5 py-3 font-semibold text-slate-950"&gt;Get weekly brief&lt;/button&gt;
+      &lt;/form&gt;
+    &lt;/section&gt;
+  );
+}</code></pre>
+
+      <h3>Sponsor banner</h3>
+      <pre><code>// components/SponsorBanner.tsx
+type SponsorBannerProps = {
+  slot: 'top' | 'mid' | 'sidebar';
+  sponsor?: { name: string; message: string; url: string };
+};
+
+export function SponsorBanner({ slot, sponsor }: SponsorBannerProps) {
+  const fallback = {
+    name: 'Sponsor this slot',
+    message: 'Reach finance professionals actively learning and buying AI tools.',
+    url: '/sponsor'
+  };
+  const active = sponsor ?? fallback;
+
+  return (
+    &lt;aside data-slot={slot} className="rounded-2xl border border-emerald-300/40 bg-emerald-300/10 p-5 text-center"&gt;
+      &lt;a href={active.url} className="block"&gt;
+        &lt;p className="text-xs uppercase tracking-[0.2em] text-emerald-200"&gt;Partner&lt;/p&gt;
+        &lt;p className="mt-1 font-semibold text-white"&gt;{active.name}&lt;/p&gt;
+        &lt;p className="mt-1 text-sm text-slate-300"&gt;{active.message}&lt;/p&gt;
+      &lt;/a&gt;
+    &lt;/aside&gt;
+  );
+}</code></pre>
+
+      <h3>Content card</h3>
+      <pre><code>// components/ContentCard.tsx
+type ContentItem = {
+  title: string;
+  url: string;
+  sourceType: string;
+  summary: string;
+  whyItMatters: string;
+  financeUseCase: string;
+  score: number;
+  themes: string[];
+};
+
+export function ContentCard({ item }: { item: ContentItem }) {
+  return (
+    &lt;article className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5"&gt;
+      &lt;div className="flex items-center justify-between gap-4"&gt;
+        &lt;span className="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase text-slate-300"&gt;{item.sourceType}&lt;/span&gt;
+        &lt;span className="text-sm font-semibold text-emerald-300"&gt;Score {item.score}&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;h3 className="mt-4 text-xl font-semibold text-white"&gt;
+        &lt;a href={item.url}&gt;{item.title}&lt;/a&gt;
+      &lt;/h3&gt;
+      &lt;p className="mt-3 text-slate-300"&gt;{item.summary}&lt;/p&gt;
+      &lt;p className="mt-3 text-sm text-slate-400"&gt;&lt;strong className="text-slate-200"&gt;Why it matters:&lt;/strong&gt; {item.whyItMatters}&lt;/p&gt;
+      &lt;p className="mt-2 text-sm text-slate-400"&gt;&lt;strong className="text-slate-200"&gt;Finance use case:&lt;/strong&gt; {item.financeUseCase}&lt;/p&gt;
+      &lt;div className="mt-4 flex flex-wrap gap-2"&gt;
+        {item.themes.map((theme) =&gt; &lt;span key={theme} className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300"&gt;{theme}&lt;/span&gt;)}
+      &lt;/div&gt;
+    &lt;/article&gt;
+  );
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>10. Monetization Strategy</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>Simple ad inventory</h3>
+          <ul>
+            <li>Top homepage sponsor banner.</li>
+            <li>Weekly newsletter sponsor.</li>
+            <li>Theme-page sponsors, e.g. “AI for compliance” sponsored by a regtech vendor.</li>
+            <li>Dedicated “tools we are testing” partner card.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Smarter monetization</h3>
+          <ul>
+            <li><strong>Paid intelligence brief:</strong> monthly PDF/Notion/HTML briefing for teams.</li>
+            <li><strong>Job board:</strong> AI finance roles from funds, fintechs, banks, data vendors.</li>
+            <li><strong>Vendor marketplace:</strong> AI research assistants, compliance tools, data vendors.</li>
+            <li><strong>Private analyst calls:</strong> paid webinars with vetted experts, recorded with rights.</li>
+            <li><strong>Lead generation:</strong> “Request vendor shortlist” form for enterprise buyers.</li>
+          </ul>
+        </div>
+      </div>
+      <pre><code>// data/sponsors.json
+[
+  {
+    "slot": "top",
+    "name": "Example AI Research Platform",
+    "message": "AI workflows for investment research teams.",
+    "url": "https://example.com?utm_source=finance-ai-curator",
+    "startsAt": "2026-07-01",
+    "endsAt": "2026-07-31"
+  }
+]</code></pre>
+    </section>
+
+    <section>
+      <h2>11. Implementation Phases</h2>
+      <p><strong>Implementation completed:</strong> the shipped app lives in <code>finance-ai-radar/</code>, with datasets, Hugging Face datasets, Hugging Face models, Hugging Face papers/models/papers, jobs, review queue, analytics, reflection loop, tests, and production build verification completed.</p>
+      <div class="phase">
+        <h3>Phase 0 — Name, promise, and repo setup</h3>
+        <ul class="checklist">
+          <li>[x] Decide working name: <strong>Finance AI Signal</strong>, <strong>Applied AI Finance Brief</strong>, or <strong>AI Finance Radar</strong>.</li>
+          <li>[x] Create Next.js app under <code>finance-ai-curator/</code>.</li>
+          <li>[x] Add README with editorial promise and rights policy.</li>
+          <li>[x] Add <code>data/source_ledger.tsv</code> before writing ingestion code.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <h3>Phase 1 — Static landing page</h3>
+        <ul class="checklist">
+          <li>[x] Build hero, sponsor banner, featured items, source tabs, theme grid, newsletter form.</li>
+          <li>[x] Hardcode 12 high-quality seed items manually.</li>
+          <li>[x] Add sponsor page explaining audience, formats, and pricing.</li>
+          <li>[x] Deploy to Vercel or static hosting.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <h3>Phase 2 — Searchable library</h3>
+        <ul class="checklist">
+          <li>[x] Add Prisma schema and SQLite/Postgres database.</li>
+          <li>[x] Convert hardcoded cards into database-backed items.</li>
+          <li>[x] Add filters for source type, theme, audience, maturity, and score.</li>
+          <li>[x] Add canonical URLs for SEO-friendly item pages.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <h3>Phase 3 — Ingestion scripts</h3>
+        <ul class="checklist">
+          <li>[x] Implement arXiv ingestion.</li>
+          <li>[x] Implement RSS ingestion.</li>
+          <li>[x] Implement GitHub repository ingestion using search queries, topic filters, and repo health scoring.</li>
+          <li>[x] Add manual URL intake form for broker/expert/blog/GitHub items.</li>
+          <li>[x] Write tests for duplicate detection and required fields.</li>
+          <li>[x] Add editorial review queue: no item publishes automatically.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <h3>Phase 4 — Newsletter and monetization</h3>
+        <ul class="checklist">
+          <li>[x] Add email provider integration.</li>
+          <li>[x] Generate weekly digest from top reviewed items.</li>
+          <li>[x] Add sponsor JSON config and tracking UTM fields.</li>
+          <li>[x] Publish a sponsor media kit page.</li>
+          <li>[x] Add paid briefing waitlist CTA.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>12. Concrete Commands for Build</h2>
+      <pre><code># From: scratch my itch to learn and prosper/
+npx create-next-app@latest finance-ai-curator \
+  --ts --eslint --tailwind --app --src-dir=false --import-alias="@/*"
+
+cd finance-ai-curator
+npm install prisma @prisma/client zod feedparser
+npm install -D @types/feedparser vitest
+npx prisma init --datasource-provider sqlite
+npm run dev</code></pre>
+      <p>Expected verification: local site loads at <code>http://localhost:3000</code>; TypeScript and ESLint pass; homepage renders hero, sponsor slot, sample items, and signup form.</p>
+    </section>
+
+    <section>
+      <h2>13. Acceptance Criteria</h2>
+      <ul class="checklist">
+        <li>[x] A visitor immediately understands the site curates applied AI in finance rather than generic AI news.</li>
+        <li>[x] Homepage has visible monetization inventory without degrading credibility.</li>
+        <li>[x] At least 12 seed items are curated across papers, GitHub repositories, discussions, news/blogs, tools/datasets, and expert commentary.</li>
+        <li>[x] Every item includes title, URL, source type, summary, why-it-matters, finance use case, score, license note, and review status.</li>
+        <li>[x] There is a rights policy for broker research, expert calls, and copyrighted content.</li>
+        <li>[x] Newsletter capture works or gracefully stores emails locally during MVP.</li>
+        <li>[x] Source ledger can be opened in a spreadsheet and audited by a human.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>14. Risks and Mitigations</h2>
+      <table>
+        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Too broad; becomes generic AI news.</td><td>Every item must pass finance-use-case test. Reject generic model releases unless finance implication is explicit.</td></tr>
+          <tr><td>Copyright / broker research issues.</td><td>Metadata + links + original commentary only. No proprietary PDFs or copied research text.</td></tr>
+          <tr><td>Automated summaries hallucinate.</td><td>Editorial review required before publishing; include source URL and human notes.</td></tr>
+          <tr><td>Ads reduce trust.</td><td>Clearly label sponsors; prefer relevant partners; maintain editorial independence statement.</td></tr>
+          <tr><td>No repeat audience.</td><td>Weekly digest, persistent theme pages, “best papers/tools this month,” and public research roadmaps.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>15. First 10 Seed Themes</h2>
+      <div>
+        <span class="tag">LLMs for equity research</span>
+        <span class="tag">AI agents for analysts</span>
+        <span class="tag">Credit underwriting</span>
+        <span class="tag">Fraud detection</span>
+        <span class="tag">Risk and compliance</span>
+        <span class="tag">Portfolio construction</span>
+        <span class="tag">Market microstructure</span>
+        <span class="tag">Alternative data</span>
+        <span class="tag">Open-source AI finance repos</span>
+        <span class="tag">Synthetic financial data</span>
+        <span class="tag">Bank operations automation</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>16. Suggested First Build Task List</h2>
+      <ol>
+        <li>Create the Next.js app and deploy a static landing page.</li>
+        <li>Add 12 manually curated items in <code>data/source_ledger.tsv</code>, including at least 3 GitHub repositories.</li>
+        <li>Render cards from the ledger rather than hardcoding JSX.</li>
+        <li>Add sponsor slots and sponsor page.</li>
+        <li>Add newsletter capture.</li>
+        <li>Add arXiv and GitHub ingestion scripts with deduplication.</li>
+        <li>Add editorial review workflow.</li>
+        <li>Publish first weekly digest and share on LinkedIn/Substack.</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

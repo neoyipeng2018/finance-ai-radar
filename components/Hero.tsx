@@ -1,38 +1,39 @@
+import type { DashboardSnapshot } from '../lib/types';
+
 type HeroProps = {
-  totalItems: number;
-  githubItems: number;
-  themeCount: number;
-  reviewedItems: number;
+  dashboard: DashboardSnapshot;
 };
 
-export function Hero({ totalItems, githubItems, themeCount, reviewedItems }: HeroProps) {
+export function Hero({ dashboard }: HeroProps) {
   return (
-    <section className="hero">
+    <section className="hero" id="top">
       <div className="panel hero-main">
         <div className="eyebrow">Finance AI Radar</div>
-        <h1>The signal layer for AI that actually matters in finance.</h1>
-        <p className="lede">A curated intelligence homepage for applied AI in finance: papers, GitHub repositories, public-domain datasets, practitioner debates, regulatory signals, expert-call ideas, and monetizable sponsor inventory.</p>
+        <h1>AI-finance signals, ranked for action.</h1>
+        <p className="lede">One clean operating dashboard for what matters now: deployable repos, public-domain datasets, model papers, hiring demand, and regulatory signals.</p>
         <div className="hero-actions">
-          <a className="cta" href="#library">Explore the library</a>
-          <a className="ghost" href="#monetization">Sponsor the brief</a>
+          <a className="cta" href="#dashboard">View dashboard</a>
+          <a className="ghost" href="#library">Search library</a>
         </div>
         <div className="kpi-grid">
-          <div className="kpi"><strong>{totalItems}</strong><span>seed signals</span></div>
-          <div className="kpi"><strong>{githubItems}</strong><span>GitHub repos</span></div>
-          <div className="kpi"><strong>{themeCount}</strong><span>themes</span></div>
-          <div className="kpi"><strong>{reviewedItems}</strong><span>reviewed</span></div>
+          {dashboard.heroStats.map((stat) => (
+            <div className="kpi" key={stat.label}>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+              <small>{stat.detail}</small>
+            </div>
+          ))}
         </div>
       </div>
-      <aside className="panel sponsor-card" id="sponsor">
-        <div>
-          <div className="eyebrow">Premium sponsor slot</div>
-          <h2>Reach AI-forward finance buyers before the category gets crowded.</h2>
-          <p>Best-fit sponsors: data vendors, research copilots, model-eval platforms, compliance AI, expert networks, quant infrastructure, and AI-finance hiring teams.</p>
-        </div>
-        <div>
-          <p className="price">Launch inventory: newsletter, homepage, theme page, expert-call series.</p>
-          <a className="cta" href="mailto:sponsor@financeairadar.example">Request media kit</a>
-        </div>
+      <aside className="panel command-panel">
+        <div className="eyebrow">Today at a glance</div>
+        {dashboard.priorityPanels.map((panel) => (
+          <a className="priority-row" href={panel.href} key={panel.label}>
+            <span>{panel.label}</span>
+            <strong>{panel.title}</strong>
+            <small>{panel.detail}</small>
+          </a>
+        ))}
       </aside>
     </section>
   );

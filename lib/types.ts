@@ -104,6 +104,25 @@ export type ThemeBrief = {
   topUseCase: string;
 };
 
+export type DashboardStat = {
+  label: string;
+  value: string;
+  detail: string;
+};
+
+export type DashboardPanel = {
+  label: string;
+  title: string;
+  detail: string;
+  href: string;
+};
+
+export type DashboardSnapshot = {
+  heroStats: DashboardStat[];
+  priorityPanels: DashboardPanel[];
+  topItems: ContentItem[];
+};
+
 export type EditorialMetrics = {
   reviewedCoverage: number;
   rightsSafeItems: number;

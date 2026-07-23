@@ -34,6 +34,8 @@ export function LibraryExplorer({ items }: { items: ContentItem[] }) {
   const [customDays, setCustomDays] = useState(30);
   const themes = useMemo(() => getAllThemes(items), [items]);
   const results = useMemo(() => searchItems(items, { query, sourceType, theme, dateWindow, customDays }), [items, query, sourceType, theme, dateWindow, customDays]);
+  const visibleResults = results.slice(0, 9);
+  const hiddenResults = results.slice(9);
 
   return (
     <section className="section" id="library">
@@ -104,13 +106,21 @@ export function LibraryExplorer({ items }: { items: ContentItem[] }) {
         ) : null}
       </div>
       <div className="library-list">
-        {results.length > 0 ? results.map((item, index) => <ContentCard item={item} key={item.id} rankPosition={index + 1} />) : (
+        {visibleResults.length > 0 ? visibleResults.map((item, index) => <ContentCard item={item} key={item.id} rankPosition={index + 1} />) : (
           <div className="empty-state">
             <strong>No recent matches for this filter set.</strong>
             <span>Switch the freshness window to all time or broaden the source/theme filters to inspect evergreen items.</span>
           </div>
         )}
       </div>
+      {hiddenResults.length > 0 ? (
+        <details className="more-results">
+          <summary>Show {hiddenResults.length} more matching items</summary>
+          <div className="library-list">
+            {hiddenResults.map((item, index) => <ContentCard item={item} key={item.id} rankPosition={index + visibleResults.length + 1} />)}
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }

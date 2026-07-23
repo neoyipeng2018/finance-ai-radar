@@ -95,13 +95,33 @@ def summarize(rows: list[Row]) -> dict[str, object]:
     }
 
 
+def analytics_error(error: subprocess.CalledProcessError | FileNotFoundError) -> dict[str, object]:
+    if isinstance(error, FileNotFoundError):
+        return {
+            'status': 'analytics_error',
+            'source': 'database',
+            'error': f'{error.filename} not found',
+        }
+    message = (error.stderr or error.stdout or str(error)).strip().splitlines()
+    return {
+        'status': 'analytics_error',
+        'source': 'database',
+        'error': message[-1] if message else 'psql failed',
+    }
+
+
+def no_events(source: str) -> dict[str, object]:
+    return {'status': 'no_events', 'source': source}
+
+
 def main() -> None:
     database_url = os.environ.get('DATABASE_URL')
-    rows = rows_from_database(database_url) if database_url else rows_from_tsv(EVENTS)
-    if not rows:
-        summary: dict[str, object] = {'status': 'no_events'}
-    else:
-        summary = summarize(rows)
+    source = 'database' if database_url else 'tsv'
+    try:
+        rows = rows_from_database(database_url) if database_url else rows_from_tsv(EVENTS)
+        summary = summarize(rows) if rows else no_events(source)
+    except (subprocess.CalledProcessError, FileNotFoundError) as error:
+        summary = analytics_error(error)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))

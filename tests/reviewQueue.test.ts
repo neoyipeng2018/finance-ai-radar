@@ -7,9 +7,8 @@ describe('review queue', () => {
     const candidates = getReviewCandidates();
     const queueSummary = reviewQueueSummary(candidates);
 
-    expect(candidates.length).toBeGreaterThanOrEqual(1);
     expect(queueSummary.total).toBe(candidates.length);
-    expect(queueSummary.byStatus.candidate).toBeGreaterThan(0);
+    expect(queueSummary.byStatus.candidate).toBe(candidates.filter((candidate) => candidate.status === 'candidate').length);
     expect(candidates.every((candidate) => candidate.licenseGuess.trim().length > 0)).toBe(true);
     expect(candidates.every((candidate) => candidate.relevanceReason.length >= 20)).toBe(true);
     expect(candidates.filter(isPublishable)).toHaveLength(0);
