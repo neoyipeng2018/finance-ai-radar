@@ -9,6 +9,7 @@ describe('review queue', () => {
 
     expect(queueSummary.total).toBe(candidates.length);
     expect(queueSummary.byStatus.candidate).toBe(candidates.filter((candidate) => candidate.status === 'candidate').length);
+    expect(queueSummary.bySourceType.huggingface_model).toBe(candidates.filter((candidate) => candidate.sourceType === 'huggingface_model').length || undefined);
     expect(candidates.every((candidate) => candidate.licenseGuess.trim().length > 0)).toBe(true);
     expect(candidates.every((candidate) => candidate.relevanceReason.length >= 20)).toBe(true);
     expect(candidates.filter(isPublishable)).toHaveLength(0);
@@ -62,6 +63,41 @@ describe('review queue', () => {
     ]);
 
     expect(candidate.licenseGuess).toBe('mit');
+  });
+
+  it('summarizes candidate source types for review triage', () => {
+    const candidates = parseReviewCandidateRows([
+      {
+        candidate_id: 'hf-model-source-summary',
+        source_type: 'huggingface_model',
+        title: 'Finance language model source summary candidate',
+        url: 'https://huggingface.co/example/finance-model',
+        publisher: 'Example',
+        discovered_at: '2026-07-25T00:00:00.000Z',
+        relevance_reason: 'A relevant finance model candidate for source-type review summary validation.',
+        license_guess: 'apache-2.0',
+        status: 'candidate',
+        reviewer_notes: 'Needs model-risk review.',
+      },
+      {
+        candidate_id: 'arxiv-source-summary',
+        source_type: 'arxiv',
+        title: 'Finance agent paper source summary candidate',
+        url: 'https://arxiv.org/abs/2607.00001',
+        publisher: 'arXiv',
+        discovered_at: '2026-07-25T00:00:00.000Z',
+        relevance_reason: 'A relevant finance agent paper candidate for source-type review summary validation.',
+        license_guess: 'arXiv public abstract metadata only',
+        status: 'candidate',
+        reviewer_notes: 'Needs reproducibility review.',
+      },
+    ]);
+
+    const summary = reviewQueueSummary(candidates);
+
+    expect(summary.bySourceType.huggingface_model).toBe(1);
+    expect(summary.bySourceType.arxiv).toBe(1);
+    expect(summary.bySourceType.github).toBeUndefined();
   });
 
   it('converts reviewed queue rows into content drafts with required license and caveat fields', () => {

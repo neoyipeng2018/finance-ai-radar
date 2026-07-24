@@ -220,7 +220,7 @@ export function getHuggingFaceCoverage(items: ContentItem[]): HuggingFaceCoverag
   };
 }
 
-export function getEditorialMetrics(items: ContentItem[], queue: ReviewQueueSummary = { total: 0, byStatus: { candidate: 0, triaged: 0, reviewed: 0, published: 0, rejected: 0 }, staleCandidates: 0 }): EditorialMetrics {
+export function getEditorialMetrics(items: ContentItem[], queue: ReviewQueueSummary = { total: 0, byStatus: { candidate: 0, triaged: 0, reviewed: 0, published: 0, rejected: 0 }, bySourceType: {}, staleCandidates: 0 }): EditorialMetrics {
   const reviewedItems = items.filter(reviewed);
   const rightsSafeItems = items.filter((item) => item.licenseNote.trim().length > 0 && item.riskOrCaveat.trim().length > 0).length;
   const highEvidenceItems = items.filter((item) => item.evidenceQuality === 'high').length;

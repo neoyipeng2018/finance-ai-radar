@@ -23,12 +23,16 @@ FIELDS = [
 ]
 
 def run_kaggle(query: str) -> list[dict[str, str]]:
-    result = subprocess.run(
-        ['kaggle', 'datasets', 'list', '--search', query, '--csv'],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            ['kaggle', 'datasets', 'list', '--search', query, '--csv'],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        print(json.dumps({'query': query, 'status': 'skipped', 'stderr': 'kaggle CLI not found'}))
+        return []
     if result.returncode != 0:
         print(json.dumps({'query': query, 'status': 'skipped', 'stderr': result.stderr[:300]}))
         return []

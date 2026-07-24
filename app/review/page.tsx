@@ -4,6 +4,7 @@ import { getReviewCandidates, reviewQueueSummary } from '../../lib/reviewQueueSt
 export default function ReviewQueuePage() {
   const candidates = getReviewCandidates();
   const summary = reviewQueueSummary(candidates);
+  const sourceTypeEntries = Object.entries(summary.bySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
 
   return (
     <main className="page-shell">
@@ -22,6 +23,11 @@ export default function ReviewQueuePage() {
         <div className="grid four">
           {Object.entries(summary.byStatus).map(([status, count]) => (
             <article className="metric-card" key={status}><span>{status}</span><strong>{count}</strong><p>Queue status count</p></article>
+          ))}
+        </div>
+        <div className="grid four">
+          {sourceTypeEntries.map(([sourceType, count]) => (
+            <article className="metric-card" key={sourceType}><span>{sourceType}</span><strong>{count}</strong><p>Candidate source mix</p></article>
           ))}
         </div>
         <div className="library-list">

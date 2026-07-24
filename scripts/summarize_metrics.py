@@ -4,6 +4,7 @@ import os
 import subprocess
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Optional, Union
 
 ROOT = Path(__file__).resolve().parents[1]
 EVENTS = Path(os.environ.get('ANALYTICS_EVENTS_TSV', ROOT / 'data' / 'analytics_events.tsv'))
@@ -45,7 +46,7 @@ copy (
     return [{key: value for key, value in row.items() if key is not None} for row in reader]
 
 
-def increment(counter: Counter[str], value: str | None) -> None:
+def increment(counter: Counter[str], value: Optional[str]) -> None:
     if value:
         counter[value] += 1
 
@@ -95,7 +96,7 @@ def summarize(rows: list[Row]) -> dict[str, object]:
     }
 
 
-def analytics_error(error: subprocess.CalledProcessError | FileNotFoundError) -> dict[str, object]:
+def analytics_error(error: Union[subprocess.CalledProcessError, FileNotFoundError]) -> dict[str, object]:
     if isinstance(error, FileNotFoundError):
         return {
             'status': 'analytics_error',
