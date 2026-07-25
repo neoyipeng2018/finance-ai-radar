@@ -183,6 +183,18 @@ export function getDatasetCoverage(items: ContentItem[]): DatasetCoverage {
   };
 }
 
+const datasetSourceTypes: SourceType[] = ['dataset', 'kaggle', 'huggingface_dataset', 'regulator'];
+
+export function getTopClickedDataset(items: ContentItem[], topItems: ReadonlyArray<ReadonlyArray<string | number>>): ContentItem | undefined {
+  for (const entry of topItems) {
+    const itemId = entry[0];
+    if (typeof itemId !== 'string') continue;
+    const item = items.find((candidate) => candidate.id === itemId && reviewed(candidate) && (candidate.datasetFields || datasetSourceTypes.includes(candidate.sourceType)));
+    if (item) return item;
+  }
+  return undefined;
+}
+
 export function getJobsCoverage(items: ContentItem[]): JobsCoverage {
   const jobs = items.filter((item) => reviewed(item) && item.sourceType === 'job' && item.jobFields);
   return {

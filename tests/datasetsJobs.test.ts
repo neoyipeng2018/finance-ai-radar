@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sourceItems } from '../data/sourceItems';
-import { getDatasetCoverage, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, searchItems, sourceLabel } from '../lib/library';
+import { getDatasetCoverage, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getTopClickedDataset, searchItems, sourceLabel } from '../lib/library';
 
 describe('datasets and jobs intelligence', () => {
   it('publishes reviewed public finance NLP datasets with license and leakage posture', () => {
@@ -13,6 +13,14 @@ describe('datasets and jobs intelligence', () => {
     expect(datasets.reviewed).toBeGreaterThanOrEqual(5);
     expect(datasets.withLeakageRisks).toBe(datasets.reviewed);
     expect(sourceLabel('huggingface_dataset')).toBe('Hugging Face dataset');
+  });
+
+  it('selects a reviewed dataset when source-click metrics point to one', () => {
+    const dataset = getTopClickedDataset(sourceItems, [['dataset-sec-edgar', 1], ['job-financial-nlp-engineer-reviewed', 1]]);
+
+    expect(dataset?.id).toBe('dataset-sec-edgar');
+    expect(dataset?.licenseNote).toContain('Public government source');
+    expect(getTopClickedDataset(sourceItems, [['job-financial-nlp-engineer-reviewed', 1]])).toBeUndefined();
   });
 
   it('tracks AI plus finance jobs as demand-side intelligence', () => {

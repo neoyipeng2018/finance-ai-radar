@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { ContentCard } from '../../components/ContentCard';
+import dailyMetrics from '../../data/daily_metrics.json';
 import { sourceItems } from '../../data/sourceItems';
-import { getDatasetCoverage } from '../../lib/library';
+import { getDatasetCoverage, getTopClickedDataset } from '../../lib/library';
 
 export default function DatasetsPage() {
   const datasets = sourceItems.filter((item) => item.datasetFields);
   const coverage = getDatasetCoverage(sourceItems);
+  const topClickedDataset = getTopClickedDataset(sourceItems, dailyMetrics.top_items);
 
   return (
     <main className="page-shell">
@@ -22,6 +24,14 @@ export default function DatasetsPage() {
           <p>{coverage.reviewed} reviewed datasets across {coverage.modalities.join(', ')} modalities. Every dataset includes license and leakage posture.</p>
         </div>
         <div className="meta">{coverage.nlpUseCases.map((useCase) => <span className="chip" key={useCase}>{useCase}</span>)}</div>
+        {topClickedDataset ? (
+          <div className="metric-card">
+            <div className="eyebrow">Current reader dataset signal</div>
+            <h2>{topClickedDataset.title}</h2>
+            <p>{topClickedDataset.financeUseCase}</p>
+            <div className="rationale"><strong>Why it matters:</strong> {topClickedDataset.whyItMatters}</div>
+          </div>
+        ) : null}
         <div className="library-list">
           {datasets.map((item, index) => <ContentCard item={item} key={item.id} rankPosition={index + 1} />)}
         </div>
