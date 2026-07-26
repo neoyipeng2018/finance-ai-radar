@@ -195,6 +195,16 @@ export function getTopClickedDataset(items: ContentItem[], topItems: ReadonlyArr
   return undefined;
 }
 
+export function getTopClickedJob(items: ContentItem[], topJobs: ReadonlyArray<ReadonlyArray<string | number>>): ContentItem | undefined {
+  for (const entry of topJobs) {
+    const itemId = entry[0];
+    if (typeof itemId !== 'string') continue;
+    const item = items.find((candidate) => candidate.id === itemId && reviewed(candidate) && candidate.sourceType === 'job' && candidate.jobFields);
+    if (item) return item;
+  }
+  return undefined;
+}
+
 export function getJobsCoverage(items: ContentItem[]): JobsCoverage {
   const jobs = items.filter((item) => reviewed(item) && item.sourceType === 'job' && item.jobFields);
   return {

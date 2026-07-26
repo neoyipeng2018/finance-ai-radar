@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { ContentCard } from '../../components/ContentCard';
+import dailyMetrics from '../../data/daily_metrics.json';
 import { sourceItems } from '../../data/sourceItems';
-import { getJobsCoverage } from '../../lib/library';
+import { getJobsCoverage, getTopClickedJob } from '../../lib/library';
 
 export default function JobsPage() {
   const jobs = sourceItems.filter((item) => item.sourceType === 'job' && item.jobFields);
   const coverage = getJobsCoverage(sourceItems);
+  const topClickedJob = getTopClickedJob(sourceItems, dailyMetrics.top_jobs);
 
   return (
     <main className="page-shell">
@@ -31,6 +33,14 @@ export default function JobsPage() {
             <div className="meta">{coverage.financeDomains.map((domain) => <span className="chip" key={domain}>{domain}</span>)}</div>
           </article>
         </div>
+        {topClickedJob ? (
+          <div className="metric-card">
+            <div className="eyebrow">Current reader hiring signal</div>
+            <h2>{topClickedJob.title}</h2>
+            <p>{topClickedJob.financeUseCase}</p>
+            <div className="rationale"><strong>Why it matters:</strong> {topClickedJob.whyItMatters}</div>
+          </div>
+        ) : null}
         <div className="library-list">
           {jobs.map((item, index) => <ContentCard item={item} key={item.id} rankPosition={index + 1} />)}
         </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sourceItems } from '../data/sourceItems';
-import { getDatasetCoverage, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getTopClickedDataset, searchItems, sourceLabel } from '../lib/library';
+import { getDatasetCoverage, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getTopClickedDataset, getTopClickedJob, searchItems, sourceLabel } from '../lib/library';
 
 describe('datasets and jobs intelligence', () => {
   it('publishes reviewed public finance NLP datasets with license and leakage posture', () => {
@@ -32,6 +32,14 @@ describe('datasets and jobs intelligence', () => {
     expect(jobs.roleFamilies).toContain('risk');
     expect(jobResults.length).toBeGreaterThan(0);
     expect(jobResults.every((item) => item.jobFields)).toBe(true);
+  });
+
+  it('selects a reviewed job when hiring metrics point to one', () => {
+    const job = getTopClickedJob(sourceItems, [['job-financial-nlp-engineer-reviewed', 1], ['dataset-sec-edgar', 1]]);
+
+    expect(job?.id).toBe('job-financial-nlp-engineer-reviewed');
+    expect(job?.jobFields?.roleFamily).toBe('engineering');
+    expect(getTopClickedJob(sourceItems, [['dataset-sec-edgar', 1]])).toBeUndefined();
   });
 
   it('adds Hugging Face models and papers as first-class finance AI sources', () => {
