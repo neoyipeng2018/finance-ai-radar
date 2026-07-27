@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import dailyMetrics from '../data/daily_metrics.json';
 import { sourceItems } from '../data/sourceItems';
-import { getDashboardSnapshot, getDatasetCoverage, getEditorialMetrics, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getThemeBriefs, searchItems, sourceLabel } from '../lib/library';
+import { getDashboardSnapshot, getDatasetCoverage, getEditorialMetrics, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getThemeBriefs, getTopClickedSourceType, searchItems, sourceLabel } from '../lib/library';
 import { getReviewCandidates, reviewQueueSummary } from '../lib/reviewQueueStore';
 import type { ContentItem, SourceType, ThemeBrief } from '../lib/types';
 
@@ -70,6 +71,7 @@ export default function Home() {
     .filter((item) => item.datasetFields || item.huggingFaceModelFields || item.huggingFacePaperFields)
     .slice(0, 4);
   const hiringSignal = searchItems(sourceItems, { query: '', sourceType: 'job', theme: 'all', dateWindow: 'all' })[0];
+  const readerSourceSignal = getTopClickedSourceType(dailyMetrics.top_source_types);
   const topSignals = dashboard.topItems.slice(0, 3);
   const reviewedItems = dashboard.heroStats.find((stat) => stat.label === 'Reviewed')?.value ?? '0';
 
@@ -175,6 +177,13 @@ export default function Home() {
             <strong>{hiringSignal?.title ?? 'No hiring signal yet'}</strong>
             <small>{hiringSignal?.jobFields ? `${hiringSignal.jobFields.company} · ${hiringSignal.jobFields.roleFamily} · ${hiringSignal.jobFields.skills.slice(0, 3).join(', ')}` : 'Add job evidence to validate buyer demand.'}</small>
           </div>
+          {readerSourceSignal ? (
+            <div className="hiring-card">
+              <span>Reader source demand</span>
+              <strong>{sourceLabel(readerSourceSignal.sourceType)}</strong>
+              <small>{readerSourceSignal.clicks} source click{readerSourceSignal.clicks === 1 ? '' : 's'} in the latest analytics snapshot; weak signal only, not an editorial override.</small>
+            </div>
+          ) : null}
           <div className="source-bars">
             {activeSources.map(([sourceType, count]) => (
               <div className="source-bar" key={sourceType}>

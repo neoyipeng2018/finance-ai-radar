@@ -205,6 +205,16 @@ export function getTopClickedJob(items: ContentItem[], topJobs: ReadonlyArray<Re
   return undefined;
 }
 
+export function getTopClickedSourceType(topSourceTypes: ReadonlyArray<ReadonlyArray<string | number>>): { sourceType: SourceType; clicks: number } | undefined {
+  for (const entry of topSourceTypes) {
+    const sourceType = entry[0];
+    const clicks = entry[1];
+    if (typeof sourceType !== 'string' || typeof clicks !== 'number') continue;
+    if (sourceOrder.includes(sourceType as SourceType)) return { sourceType: sourceType as SourceType, clicks };
+  }
+  return undefined;
+}
+
 export function getJobsCoverage(items: ContentItem[]): JobsCoverage {
   const jobs = items.filter((item) => reviewed(item) && item.sourceType === 'job' && item.jobFields);
   return {
