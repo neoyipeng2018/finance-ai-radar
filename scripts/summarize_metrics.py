@@ -96,15 +96,31 @@ def summarize(rows: list[Row]) -> dict[str, object]:
     }
 
 
+def empty_metrics() -> dict[str, object]:
+    return {
+        'sessions': 0,
+        'total_source_clicks': 0,
+        'top_items': [],
+        'top_source_types': [],
+        'top_themes': [],
+        'top_date_windows': [],
+        'top_jobs': [],
+        'average_scroll_depth': 0,
+        'high_intent_paths': [],
+    }
+
+
 def analytics_error(error: Union[subprocess.CalledProcessError, FileNotFoundError]) -> dict[str, object]:
     if isinstance(error, FileNotFoundError):
         return {
+            **empty_metrics(),
             'status': 'analytics_error',
             'source': 'database',
             'error': f'{error.filename} not found',
         }
     message = (error.stderr or error.stdout or str(error)).strip().splitlines()
     return {
+        **empty_metrics(),
         'status': 'analytics_error',
         'source': 'database',
         'error': message[-1] if message else 'psql failed',
@@ -112,7 +128,7 @@ def analytics_error(error: Union[subprocess.CalledProcessError, FileNotFoundErro
 
 
 def no_events(source: str) -> dict[str, object]:
-    return {'status': 'no_events', 'source': source}
+    return {**empty_metrics(), 'status': 'no_events', 'source': source}
 
 
 def main() -> None:
