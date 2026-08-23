@@ -49,19 +49,25 @@ describe('datasets and jobs intelligence', () => {
     expect(getTopClickedSourceType([['unknown_source', 3]])).toBeUndefined();
   });
 
-  it('adds Hugging Face models and papers as first-class finance AI sources', () => {
+  it('adds Hugging Face datasets, models, and papers as first-class finance AI sources', () => {
     const counts = getSourceCounts(sourceItems);
     const coverage = getHuggingFaceCoverage(sourceItems);
+    const datasetResults = searchItems(sourceItems, { query: 'financial', sourceType: 'huggingface_dataset', theme: 'all', dateWindow: 'all' });
     const modelResults = searchItems(sourceItems, { query: 'FinBERT', sourceType: 'huggingface_model', theme: 'all', dateWindow: 'all' });
     const paperResults = searchItems(sourceItems, { query: 'FinGPT', sourceType: 'huggingface_paper', theme: 'all', dateWindow: 'all' });
 
+    expect(counts.huggingface_dataset).toBeGreaterThanOrEqual(2);
     expect(counts.huggingface_model).toBeGreaterThanOrEqual(2);
     expect(counts.huggingface_paper).toBeGreaterThanOrEqual(2);
+    expect(coverage.reviewedDatasets).toBeGreaterThanOrEqual(2);
     expect(coverage.reviewedModels).toBeGreaterThanOrEqual(2);
     expect(coverage.reviewedPapers).toBeGreaterThanOrEqual(2);
+    expect(coverage.datasetUseCases.length).toBeGreaterThan(0);
     expect(coverage.modelFamilies).toContain('FinBERT');
+    expect(sourceLabel('huggingface_dataset')).toBe('Hugging Face dataset');
     expect(sourceLabel('huggingface_model')).toBe('Hugging Face model');
     expect(sourceLabel('huggingface_paper')).toBe('Hugging Face paper');
+    expect(datasetResults.length).toBeGreaterThan(0);
     expect(modelResults.length).toBeGreaterThan(0);
     expect(paperResults.length).toBeGreaterThan(0);
   });

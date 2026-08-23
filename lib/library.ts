@@ -240,11 +240,14 @@ export function getHiringSignals(items: ContentItem[]): ThemeBrief[] {
 
 
 export function getHuggingFaceCoverage(items: ContentItem[]): HuggingFaceCoverage {
+  const datasets = items.filter((item) => reviewed(item) && item.sourceType === 'huggingface_dataset' && item.datasetFields);
   const models = items.filter((item) => reviewed(item) && item.sourceType === 'huggingface_model' && item.huggingFaceModelFields);
   const papers = items.filter((item) => reviewed(item) && item.sourceType === 'huggingface_paper' && item.huggingFacePaperFields);
   return {
+    reviewedDatasets: datasets.length,
     reviewedModels: models.length,
     reviewedPapers: papers.length,
+    datasetUseCases: [...new Set(datasets.flatMap((item) => item.datasetFields?.nlpUseCases ?? []))].sort(),
     tasks: [...new Set(models.flatMap((item) => item.huggingFaceModelFields ? [item.huggingFaceModelFields.task] : []))].sort(),
     modelFamilies: [...new Set(models.flatMap((item) => item.huggingFaceModelFields ? [item.huggingFaceModelFields.modelFamily] : []))].sort(),
     financeDomains: [...new Set(papers.flatMap((item) => item.huggingFacePaperFields?.financeDomains ?? []))].sort(),

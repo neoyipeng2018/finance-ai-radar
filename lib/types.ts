@@ -154,8 +154,10 @@ export type JobsCoverage = {
 
 
 export type HuggingFaceCoverage = {
+  reviewedDatasets: number;
   reviewedModels: number;
   reviewedPapers: number;
+  datasetUseCases: string[];
   tasks: string[];
   modelFamilies: string[];
   financeDomains: string[];
