@@ -205,6 +205,17 @@ export function getTopClickedJob(items: ContentItem[], topJobs: ReadonlyArray<Re
   return undefined;
 }
 
+export function getTopClickedItem(items: ContentItem[], topItems: ReadonlyArray<ReadonlyArray<string | number>>): { item: ContentItem; clicks: number } | undefined {
+  for (const entry of topItems) {
+    const itemId = entry[0];
+    const clicks = entry[1];
+    if (typeof itemId !== 'string' || typeof clicks !== 'number') continue;
+    const item = items.find((candidate) => candidate.id === itemId && reviewed(candidate));
+    if (item) return { item, clicks };
+  }
+  return undefined;
+}
+
 export function getTopClickedSourceType(topSourceTypes: ReadonlyArray<ReadonlyArray<string | number>>): { sourceType: SourceType; clicks: number } | undefined {
   for (const entry of topSourceTypes) {
     const sourceType = entry[0];

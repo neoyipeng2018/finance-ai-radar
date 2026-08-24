@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sourceItems } from '../data/sourceItems';
-import { getDatasetCoverage, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getTopClickedDataset, getTopClickedJob, getTopClickedSourceType, searchItems, sourceLabel } from '../lib/library';
+import { getDatasetCoverage, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getTopClickedDataset, getTopClickedItem, getTopClickedJob, getTopClickedSourceType, searchItems, sourceLabel } from '../lib/library';
 
 describe('datasets and jobs intelligence', () => {
   it('publishes reviewed public finance NLP datasets with license and leakage posture', () => {
@@ -47,6 +47,14 @@ describe('datasets and jobs intelligence', () => {
 
     expect(sourceSignal).toEqual({ sourceType: 'dataset', clicks: 1 });
     expect(getTopClickedSourceType([['unknown_source', 3]])).toBeUndefined();
+  });
+
+  it('selects the leading reviewed item from click metrics without accepting malformed rows', () => {
+    const itemSignal = getTopClickedItem(sourceItems, [['missing-item', 3], ['dataset-sec-edgar', 1], ['job-financial-nlp-engineer-reviewed', 'bad-count']]);
+
+    expect(itemSignal?.item.id).toBe('dataset-sec-edgar');
+    expect(itemSignal?.clicks).toBe(1);
+    expect(getTopClickedItem(sourceItems, [['dataset-sec-edgar', 'bad-count']])).toBeUndefined();
   });
 
   it('adds Hugging Face datasets, models, and papers as first-class finance AI sources', () => {
