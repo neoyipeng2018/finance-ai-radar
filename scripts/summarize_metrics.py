@@ -51,6 +51,16 @@ def increment(counter: Counter[str], value: Optional[str]) -> None:
         counter[value] += 1
 
 
+def parse_nonnegative_int(value: Optional[str]) -> int:
+    if not value:
+        return 0
+    try:
+        parsed = int(value)
+    except ValueError:
+        return 0
+    return max(parsed, 0)
+
+
 def summarize(rows: list[Row]) -> dict[str, object]:
     item_clicks: Counter[str] = Counter()
     source_clicks: Counter[str] = Counter()
@@ -75,9 +85,9 @@ def summarize(rows: list[Row]) -> dict[str, object]:
         if event_type == 'job_click':
             increment(job_clicks, row.get('job_id'))
         if event_type == 'session_end':
-            dwell_by_path[row.get('path', '/')].append(int(row.get('dwell_ms') or 0))
+            dwell_by_path[row.get('path', '/')].append(parse_nonnegative_int(row.get('dwell_ms')))
             if row.get('scroll_depth'):
-                scroll_depths.append(int(row['scroll_depth']))
+                scroll_depths.append(parse_nonnegative_int(row.get('scroll_depth')))
 
     return {
         'sessions': len(sessions),

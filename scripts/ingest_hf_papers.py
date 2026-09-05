@@ -9,6 +9,11 @@ ROOT = Path(__file__).resolve().parents[1]
 QUEUE = ROOT / 'data' / 'review_queue.tsv'
 FIELDS = ['candidate_id', 'source_type', 'title', 'url', 'publisher', 'discovered_at', 'relevance_reason', 'license_guess', 'status', 'reviewer_notes']
 QUERIES = ['FinGPT', 'financial sentiment', 'finance large language model', 'financial question answering', 'FinBERT']
+FINANCE_TERMS = [
+    'finance', 'financial', 'fingpt', 'finbert', 'trading', 'stock', 'market',
+    'portfolio', 'asset', 'risk', 'sec filing', 'earnings', 'bank',
+    'defi', 'crypto', 'investment', 'alpha', 'return', 'covariance',
+]
 
 def fetch_papers(query: str) -> list[dict[str, object]]:
     url = f'https://huggingface.co/api/daily_papers?query={quote(query)}'
@@ -33,6 +38,10 @@ def paper_id(paper: dict[str, object]) -> str:
     if isinstance(nested, dict):
         return text_value(nested.get('id'), text_value(paper.get('id'), paper_title(paper)))
     return text_value(paper.get('id'), paper_title(paper))
+
+def is_finance_native(title: str, query: str) -> bool:
+    haystack = f'{title} {query}'.lower()
+    return any(term in haystack for term in FINANCE_TERMS) and any(term in title.lower() for term in FINANCE_TERMS)
 
 def candidate(paper: dict[str, object], query: str) -> dict[str, str]:
     pid = paper_id(paper)
@@ -67,6 +76,9 @@ def main() -> None:
             writer.writeheader()
         for query in QUERIES:
             for paper in fetch_papers(query):
+                title = paper_title(paper)
+                if not is_finance_native(title, query):
+                    continue
                 row = candidate(paper, query)
                 if row['candidate_id'] not in existing and row['title']:
                     writer.writerow(row)
