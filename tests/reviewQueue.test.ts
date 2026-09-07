@@ -65,7 +65,7 @@ describe('review queue', () => {
     expect(candidate.licenseGuess).toBe('mit');
   });
 
-  it('summarizes candidate source types for review triage', () => {
+  it('summarizes candidate source types and stale source mix for review triage', () => {
     const candidates = parseReviewCandidateRows([
       {
         candidate_id: 'hf-model-source-summary',
@@ -85,7 +85,7 @@ describe('review queue', () => {
         title: 'Finance agent paper source summary candidate',
         url: 'https://arxiv.org/abs/2607.00001',
         publisher: 'arXiv',
-        discovered_at: '2026-07-25T00:00:00.000Z',
+        discovered_at: '2026-08-03T00:00:00.000Z',
         relevance_reason: 'A relevant finance agent paper candidate for source-type review summary validation.',
         license_guess: 'arXiv public abstract metadata only',
         status: 'candidate',
@@ -93,11 +93,14 @@ describe('review queue', () => {
       },
     ]);
 
-    const summary = reviewQueueSummary(candidates);
+    const summary = reviewQueueSummary(candidates, new Date('2026-08-04T00:00:00.000Z'));
 
     expect(summary.bySourceType.huggingface_model).toBe(1);
     expect(summary.bySourceType.arxiv).toBe(1);
     expect(summary.bySourceType.github).toBeUndefined();
+    expect(summary.staleCandidates).toBe(1);
+    expect(summary.staleBySourceType.huggingface_model).toBe(1);
+    expect(summary.staleBySourceType.arxiv).toBeUndefined();
   });
 
   it('converts reviewed queue rows into content drafts with required license and caveat fields', () => {

@@ -33,6 +33,7 @@ export type ReviewQueueSummary = {
   total: number;
   byStatus: Record<ReviewStatus, number>;
   bySourceType: Partial<Record<SourceType, number>>;
+  staleBySourceType: Partial<Record<SourceType, number>>;
   staleCandidates: number;
 };
 
@@ -102,6 +103,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     rejected: 0,
   };
   const bySourceType: Partial<Record<SourceType, number>> = {};
+  const staleBySourceType: Partial<Record<SourceType, number>> = {};
   const staleThresholdMs = 7 * 24 * 60 * 60 * 1000;
   let staleCandidates = 0;
   candidates.forEach((candidate) => {
@@ -110,7 +112,8 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     const ageMs = now.getTime() - new Date(candidate.discoveredAt).getTime();
     if ((candidate.status === 'candidate' || candidate.status === 'triaged') && ageMs > staleThresholdMs) {
       staleCandidates += 1;
+      staleBySourceType[candidate.sourceType] = (staleBySourceType[candidate.sourceType] ?? 0) + 1;
     }
   });
-  return { total: candidates.length, byStatus, bySourceType, staleCandidates };
+  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates };
 }
