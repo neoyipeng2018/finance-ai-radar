@@ -25,6 +25,7 @@ export default function ReviewQueuePage() {
           {Object.entries(summary.byStatus).map(([status, count]) => (
             <article className="metric-card" key={status}><span>{status}</span><strong>{count}</strong><p>Queue status count</p></article>
           ))}
+          <article className="metric-card"><span>oldest candidate</span><strong>{summary.oldestCandidateAgeDays}d</strong><p>Age of oldest active queue item</p></article>
         </div>
         <div className="grid four">
           {sourceTypeEntries.map(([sourceType, count]) => (

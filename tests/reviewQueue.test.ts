@@ -101,6 +101,7 @@ describe('review queue', () => {
     expect(summary.staleCandidates).toBe(1);
     expect(summary.staleBySourceType.huggingface_model).toBe(1);
     expect(summary.staleBySourceType.arxiv).toBeUndefined();
+    expect(summary.oldestCandidateAgeDays).toBe(10);
   });
 
   it('converts reviewed queue rows into content drafts with required license and caveat fields', () => {
