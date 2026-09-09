@@ -43,18 +43,18 @@ describe('datasets and jobs intelligence', () => {
   });
 
   it('summarizes the leading clicked source type from analytics metrics', () => {
-    const sourceSignal = getTopClickedSourceType([['dataset', 1], ['unknown_source', 3], ['job', 'bad-count']]);
+    const sourceSignal = getTopClickedSourceType([['job', 0], ['dataset', 1], ['unknown_source', 3], ['job', 'bad-count']]);
 
     expect(sourceSignal).toEqual({ sourceType: 'dataset', clicks: 1 });
-    expect(getTopClickedSourceType([['unknown_source', 3]])).toBeUndefined();
+    expect(getTopClickedSourceType([['dataset', -1], ['job', 0], ['unknown_source', 3]])).toBeUndefined();
   });
 
   it('selects the leading reviewed item from click metrics without accepting malformed rows', () => {
-    const itemSignal = getTopClickedItem(sourceItems, [['missing-item', 3], ['dataset-sec-edgar', 1], ['job-financial-nlp-engineer-reviewed', 'bad-count']]);
+    const itemSignal = getTopClickedItem(sourceItems, [['job-financial-nlp-engineer-reviewed', 0], ['missing-item', 3], ['dataset-sec-edgar', 1], ['job-financial-nlp-engineer-reviewed', 'bad-count']]);
 
     expect(itemSignal?.item.id).toBe('dataset-sec-edgar');
     expect(itemSignal?.clicks).toBe(1);
-    expect(getTopClickedItem(sourceItems, [['dataset-sec-edgar', 'bad-count']])).toBeUndefined();
+    expect(getTopClickedItem(sourceItems, [['dataset-sec-edgar', 'bad-count'], ['dataset-sec-edgar', -1], ['dataset-sec-edgar', 0]])).toBeUndefined();
   });
 
   it('adds Hugging Face datasets, models, and papers as first-class finance AI sources', () => {
