@@ -64,6 +64,7 @@ describe('metrics summarizer script', () => {
           'event_type\tsession_id\tpath\titem_id\tsource_type\ttheme\tdate_window\tjob_id\tdwell_ms\tscroll_depth',
           'source_click\tsession-1\t/datasets\tdataset-sec-edgar\tdataset\tPublic-domain finance text\t\t\t\t',
           'session_end\tsession-1\t/datasets\t\t\t\t\t\tbad\t-10',
+          'session_end\tsession-2\t/jobs\t\t\t\t\t\t1000\t250',
         ].join('\n'),
       );
 
@@ -74,9 +75,9 @@ describe('metrics summarizer script', () => {
       });
       const metrics = readFileSync(output, 'utf8');
 
-      expect(stdout).toContain('"sessions": 1');
+      expect(stdout).toContain('"sessions": 2');
       expect(metrics).toContain('"dataset-sec-edgar"');
-      expect(metrics).toContain('"average_scroll_depth": 0');
+      expect(metrics).toContain('"average_scroll_depth": 50');
       expect(metrics).toContain('"high_intent_paths": []');
     } finally {
       rmSync(dir, { recursive: true, force: true });

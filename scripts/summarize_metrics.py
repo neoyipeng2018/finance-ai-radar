@@ -61,6 +61,10 @@ def parse_nonnegative_int(value: Optional[str]) -> int:
     return max(parsed, 0)
 
 
+def parse_scroll_depth(value: Optional[str]) -> int:
+    return min(parse_nonnegative_int(value), 100)
+
+
 def summarize(rows: list[Row]) -> dict[str, object]:
     item_clicks: Counter[str] = Counter()
     source_clicks: Counter[str] = Counter()
@@ -87,7 +91,7 @@ def summarize(rows: list[Row]) -> dict[str, object]:
         if event_type == 'session_end':
             dwell_by_path[row.get('path', '/')].append(parse_nonnegative_int(row.get('dwell_ms')))
             if row.get('scroll_depth'):
-                scroll_depths.append(parse_nonnegative_int(row.get('scroll_depth')))
+                scroll_depths.append(parse_scroll_depth(row.get('scroll_depth')))
 
     return {
         'sessions': len(sessions),
