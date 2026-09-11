@@ -65,7 +65,7 @@ def parse_scroll_depth(value: Optional[str]) -> int:
     return min(parse_nonnegative_int(value), 100)
 
 
-def summarize(rows: list[Row]) -> dict[str, object]:
+def summarize(rows: list[Row], source: str) -> dict[str, object]:
     item_clicks: Counter[str] = Counter()
     source_clicks: Counter[str] = Counter()
     theme_clicks: Counter[str] = Counter()
@@ -94,6 +94,8 @@ def summarize(rows: list[Row]) -> dict[str, object]:
                 scroll_depths.append(parse_scroll_depth(row.get('scroll_depth')))
 
     return {
+        'status': 'ok',
+        'source': source,
         'sessions': len(sessions),
         'total_source_clicks': sum(item_clicks.values()),
         'top_items': item_clicks.most_common(10),
@@ -150,7 +152,7 @@ def main() -> None:
     source = 'database' if database_url else 'tsv'
     try:
         rows = rows_from_database(database_url) if database_url else rows_from_tsv(EVENTS)
-        summary = summarize(rows) if rows else no_events(source)
+        summary = summarize(rows, source) if rows else no_events(source)
     except (subprocess.CalledProcessError, FileNotFoundError) as error:
         summary = analytics_error(error)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)

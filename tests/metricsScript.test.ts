@@ -75,6 +75,8 @@ describe('metrics summarizer script', () => {
       });
       const metrics = readFileSync(output, 'utf8');
 
+      expect(stdout).toContain('"status": "ok"');
+      expect(stdout).toContain('"source": "tsv"');
       expect(stdout).toContain('"sessions": 2');
       expect(metrics).toContain('"dataset-sec-edgar"');
       expect(metrics).toContain('"average_scroll_depth": 50');

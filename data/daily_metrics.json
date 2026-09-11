@@ -1,4 +1,6 @@
 {
+  "status": "ok",
+  "source": "tsv",
   "sessions": 2,
   "total_source_clicks": 1,
   "top_items": [
