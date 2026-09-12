@@ -192,7 +192,8 @@ function positiveMetricCount(value: string | number | undefined): number | undef
 export function getTopClickedDataset(items: ContentItem[], topItems: ReadonlyArray<ReadonlyArray<string | number>>): ContentItem | undefined {
   for (const entry of topItems) {
     const itemId = entry[0];
-    if (typeof itemId !== 'string') continue;
+    const clicks = positiveMetricCount(entry[1]);
+    if (typeof itemId !== 'string' || clicks === undefined) continue;
     const item = items.find((candidate) => candidate.id === itemId && reviewed(candidate) && (candidate.datasetFields || datasetSourceTypes.includes(candidate.sourceType)));
     if (item) return item;
   }
@@ -202,7 +203,8 @@ export function getTopClickedDataset(items: ContentItem[], topItems: ReadonlyArr
 export function getTopClickedJob(items: ContentItem[], topJobs: ReadonlyArray<ReadonlyArray<string | number>>): ContentItem | undefined {
   for (const entry of topJobs) {
     const itemId = entry[0];
-    if (typeof itemId !== 'string') continue;
+    const clicks = positiveMetricCount(entry[1]);
+    if (typeof itemId !== 'string' || clicks === undefined) continue;
     const item = items.find((candidate) => candidate.id === itemId && reviewed(candidate) && candidate.sourceType === 'job' && candidate.jobFields);
     if (item) return item;
   }

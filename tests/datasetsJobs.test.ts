@@ -21,6 +21,7 @@ describe('datasets and jobs intelligence', () => {
     expect(dataset?.id).toBe('dataset-sec-edgar');
     expect(dataset?.licenseNote).toContain('Public government source');
     expect(getTopClickedDataset(sourceItems, [['job-financial-nlp-engineer-reviewed', 1]])).toBeUndefined();
+    expect(getTopClickedDataset(sourceItems, [['dataset-sec-edgar', 0], ['dataset-sec-edgar', -1], ['dataset-sec-edgar', 'bad-count']])).toBeUndefined();
   });
 
   it('tracks AI plus finance jobs as demand-side intelligence', () => {
@@ -40,6 +41,7 @@ describe('datasets and jobs intelligence', () => {
     expect(job?.id).toBe('job-financial-nlp-engineer-reviewed');
     expect(job?.jobFields?.roleFamily).toBe('engineering');
     expect(getTopClickedJob(sourceItems, [['dataset-sec-edgar', 1]])).toBeUndefined();
+    expect(getTopClickedJob(sourceItems, [['job-financial-nlp-engineer-reviewed', 0], ['job-financial-nlp-engineer-reviewed', -1], ['job-financial-nlp-engineer-reviewed', 'bad-count']])).toBeUndefined();
   });
 
   it('summarizes the leading clicked source type from analytics metrics', () => {
