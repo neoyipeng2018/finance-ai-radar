@@ -38,6 +38,14 @@ export type ReviewQueueSummary = {
   oldestCandidateAgeDays: number;
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export function candidateAgeDays(candidate: ReviewCandidate, now: Date): number {
+  const discoveredAt = new Date(candidate.discoveredAt).getTime();
+  if (Number.isNaN(discoveredAt)) return 0;
+  return Math.max(0, Math.floor((now.getTime() - discoveredAt) / MS_PER_DAY));
+}
+
 export function rowToReviewCandidate(row: ReviewCandidateRow): ReviewCandidate {
   return ReviewCandidateSchema.parse({
     candidateId: row.candidate_id,
@@ -105,14 +113,14 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   };
   const bySourceType: Partial<Record<SourceType, number>> = {};
   const staleBySourceType: Partial<Record<SourceType, number>> = {};
-  const staleThresholdMs = 7 * 24 * 60 * 60 * 1000;
+  const staleThresholdMs = 7 * MS_PER_DAY;
   let staleCandidates = 0;
   let oldestCandidateAgeDays = 0;
   candidates.forEach((candidate) => {
     byStatus[candidate.status] += 1;
     bySourceType[candidate.sourceType] = (bySourceType[candidate.sourceType] ?? 0) + 1;
     const ageMs = now.getTime() - new Date(candidate.discoveredAt).getTime();
-    const ageDays = Math.max(0, Math.floor(ageMs / (24 * 60 * 60 * 1000)));
+    const ageDays = candidateAgeDays(candidate, now);
     oldestCandidateAgeDays = Math.max(oldestCandidateAgeDays, ageDays);
     if ((candidate.status === 'candidate' || candidate.status === 'triaged') && ageMs > staleThresholdMs) {
       staleCandidates += 1;

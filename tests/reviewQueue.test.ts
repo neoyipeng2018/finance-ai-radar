@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getReviewCandidates, reviewQueueSummary } from '../lib/reviewQueueStore';
-import { isPublishable, parseReviewCandidateRows, reviewCandidateToContentDraft } from '../lib/reviewQueue';
+import { candidateAgeDays, isPublishable, parseReviewCandidateRows, reviewCandidateToContentDraft } from '../lib/reviewQueue';
 
 describe('review queue', () => {
   it('loads candidate rows and keeps unreviewed items out of publishable content', () => {
@@ -102,6 +102,42 @@ describe('review queue', () => {
     expect(summary.staleBySourceType.huggingface_model).toBe(1);
     expect(summary.staleBySourceType.arxiv).toBeUndefined();
     expect(summary.oldestCandidateAgeDays).toBe(10);
+    expect(candidateAgeDays(candidates[0], new Date('2026-08-04T00:00:00.000Z'))).toBe(10);
+  });
+
+  it('keeps malformed or future candidate age displays at zero days', () => {
+    const [futureCandidate, malformedCandidate] = parseReviewCandidateRows([
+      {
+        candidate_id: 'future-age-candidate',
+        source_type: 'huggingface_model',
+        title: 'Future finance model candidate',
+        url: 'https://huggingface.co/example/future-finance-model',
+        publisher: 'Example',
+        discovered_at: '2026-08-10T00:00:00.000Z',
+        relevance_reason: 'A relevant finance model candidate with a future timestamp for age display validation.',
+        license_guess: 'apache-2.0',
+        status: 'candidate',
+        reviewer_notes: 'Needs model-risk review.',
+      },
+      {
+        candidate_id: 'malformed-age-candidate',
+        source_type: 'huggingface_dataset',
+        title: 'Malformed timestamp finance dataset candidate',
+        url: 'https://huggingface.co/datasets/example/malformed-finance-dataset',
+        publisher: 'Example',
+        discovered_at: 'not-a-date',
+        relevance_reason: 'A relevant finance dataset candidate with malformed timestamp for age display validation.',
+        license_guess: 'mit',
+        status: 'candidate',
+        reviewer_notes: 'Needs leakage review.',
+      },
+    ]);
+
+    const now = new Date('2026-08-04T00:00:00.000Z');
+
+    expect(candidateAgeDays(futureCandidate, now)).toBe(0);
+    expect(candidateAgeDays(malformedCandidate, now)).toBe(0);
+    expect(reviewQueueSummary([futureCandidate, malformedCandidate], now).oldestCandidateAgeDays).toBe(0);
   });
 
   it('converts reviewed queue rows into content drafts with required license and caveat fields', () => {

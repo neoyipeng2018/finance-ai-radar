@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import { candidateAgeDays } from '../../lib/reviewQueue';
 import { getReviewCandidates, reviewQueueSummary } from '../../lib/reviewQueueStore';
 
 export default function ReviewQueuePage() {
   const candidates = getReviewCandidates();
-  const summary = reviewQueueSummary(candidates);
+  const now = new Date();
+  const summary = reviewQueueSummary(candidates, now);
   const sourceTypeEntries = Object.entries(summary.bySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
   const staleSourceTypeEntries = Object.entries(summary.staleBySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
 
@@ -50,6 +52,7 @@ export default function ReviewQueuePage() {
               <p>{candidate.relevanceReason}</p>
               <div className="rationale">
                 <p><strong>Publisher:</strong> {candidate.publisher}</p>
+                <p><strong>Discovered:</strong> {candidate.discoveredAt.slice(0, 10)} · {candidateAgeDays(candidate, now)}d in queue</p>
                 <p><strong>License guess:</strong> {candidate.licenseGuess}</p>
                 <p><strong>Reviewer notes:</strong> {candidate.reviewerNotes}</p>
               </div>
