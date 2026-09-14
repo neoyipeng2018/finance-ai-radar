@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getReviewCandidates, reviewQueueSummary } from '../lib/reviewQueueStore';
-import { candidateAgeDays, isPublishable, parseReviewCandidateRows, reviewCandidateToContentDraft } from '../lib/reviewQueue';
+import { candidateAgeDays, isPublishable, parseReviewCandidateRows, reviewCandidateToContentDraft, sortReviewCandidatesForTriage } from '../lib/reviewQueue';
 
 describe('review queue', () => {
   it('loads candidate rows and keeps unreviewed items out of publishable content', () => {
@@ -138,6 +138,63 @@ describe('review queue', () => {
     expect(candidateAgeDays(futureCandidate, now)).toBe(0);
     expect(candidateAgeDays(malformedCandidate, now)).toBe(0);
     expect(reviewQueueSummary([futureCandidate, malformedCandidate], now).oldestCandidateAgeDays).toBe(0);
+  });
+
+  it('sorts active review candidates by triage priority and queue age', () => {
+    const candidates = parseReviewCandidateRows([
+      {
+        candidate_id: 'reviewed-low-priority',
+        source_type: 'dataset',
+        title: 'Reviewed dataset candidate should sort after active work',
+        url: 'https://example.com/reviewed-dataset',
+        publisher: 'Example',
+        discovered_at: '2026-07-01T00:00:00.000Z',
+        relevance_reason: 'A reviewed finance dataset candidate should not outrank active triage work.',
+        license_guess: 'Public metadata only',
+        status: 'reviewed',
+        reviewer_notes: 'Already reviewed.',
+      },
+      {
+        candidate_id: 'newer-candidate',
+        source_type: 'huggingface_model',
+        title: 'Newer finance model candidate',
+        url: 'https://huggingface.co/example/newer-finance-model',
+        publisher: 'Example',
+        discovered_at: '2026-08-03T00:00:00.000Z',
+        relevance_reason: 'A newer finance model candidate should stay behind older active candidates.',
+        license_guess: 'apache-2.0',
+        status: 'candidate',
+        reviewer_notes: 'Needs model-risk review.',
+      },
+      {
+        candidate_id: 'older-candidate',
+        source_type: 'huggingface_dataset',
+        title: 'Older finance dataset candidate',
+        url: 'https://huggingface.co/datasets/example/older-finance-dataset',
+        publisher: 'Example',
+        discovered_at: '2026-07-25T00:00:00.000Z',
+        relevance_reason: 'An older finance dataset candidate should lead active queue triage.',
+        license_guess: 'mit',
+        status: 'candidate',
+        reviewer_notes: 'Needs leakage review.',
+      },
+      {
+        candidate_id: 'triaged-candidate',
+        source_type: 'arxiv',
+        title: 'Triaged finance paper candidate',
+        url: 'https://arxiv.org/abs/2607.00002',
+        publisher: 'arXiv',
+        discovered_at: '2026-07-20T00:00:00.000Z',
+        relevance_reason: 'A triaged finance paper candidate should stay behind candidate-status work.',
+        license_guess: 'arXiv public abstract metadata only',
+        status: 'triaged',
+        reviewer_notes: 'Needs reproducibility review.',
+      },
+    ]);
+
+    const sortedIds = sortReviewCandidatesForTriage(candidates, new Date('2026-08-04T00:00:00.000Z')).map((candidate) => candidate.candidateId);
+
+    expect(sortedIds).toEqual(['older-candidate', 'newer-candidate', 'triaged-candidate', 'reviewed-low-priority']);
   });
 
   it('converts reviewed queue rows into content drafts with required license and caveat fields', () => {

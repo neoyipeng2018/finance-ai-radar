@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { candidateAgeDays } from '../../lib/reviewQueue';
+import { candidateAgeDays, sortReviewCandidatesForTriage } from '../../lib/reviewQueue';
 import { getReviewCandidates, reviewQueueSummary } from '../../lib/reviewQueueStore';
 
 export default function ReviewQueuePage() {
   const candidates = getReviewCandidates();
   const now = new Date();
   const summary = reviewQueueSummary(candidates, now);
+  const triageCandidates = sortReviewCandidatesForTriage(candidates, now);
   const sourceTypeEntries = Object.entries(summary.bySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
   const staleSourceTypeEntries = Object.entries(summary.staleBySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
 
@@ -42,7 +43,7 @@ export default function ReviewQueuePage() {
           </div>
         ) : null}
         <div className="library-list">
-          {candidates.map((candidate) => (
+          {triageCandidates.map((candidate) => (
             <article className="item-card" key={candidate.candidateId}>
               <div className="card-top">
                 <span className="badge">{candidate.sourceType}</span>

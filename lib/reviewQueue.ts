@@ -40,10 +40,28 @@ export type ReviewQueueSummary = {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+const statusPriority: Record<ReviewStatus, number> = {
+  candidate: 0,
+  triaged: 1,
+  reviewed: 2,
+  published: 3,
+  rejected: 4,
+};
+
 export function candidateAgeDays(candidate: ReviewCandidate, now: Date): number {
   const discoveredAt = new Date(candidate.discoveredAt).getTime();
   if (Number.isNaN(discoveredAt)) return 0;
   return Math.max(0, Math.floor((now.getTime() - discoveredAt) / MS_PER_DAY));
+}
+
+export function sortReviewCandidatesForTriage(candidates: ReviewCandidate[], now: Date): ReviewCandidate[] {
+  return [...candidates].sort((first, second) => {
+    const statusDelta = statusPriority[first.status] - statusPriority[second.status];
+    if (statusDelta !== 0) return statusDelta;
+    const ageDelta = candidateAgeDays(second, now) - candidateAgeDays(first, now);
+    if (ageDelta !== 0) return ageDelta;
+    return first.title.localeCompare(second.title);
+  });
 }
 
 export function rowToReviewCandidate(row: ReviewCandidateRow): ReviewCandidate {
