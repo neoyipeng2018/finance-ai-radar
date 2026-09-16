@@ -29,6 +29,7 @@ export default function ReviewQueuePage() {
             <article className="metric-card" key={status}><span>{status}</span><strong>{count}</strong><p>Queue status count</p></article>
           ))}
           <article className="metric-card"><span>oldest candidate</span><strong>{summary.oldestCandidateAgeDays}d</strong><p>Age of oldest active queue item</p></article>
+          <article className="metric-card"><span>stale share</span><strong>{summary.staleCandidateShare}%</strong><p>Active queue older than seven days</p></article>
         </div>
         <div className="grid four">
           {sourceTypeEntries.map(([sourceType, count]) => (

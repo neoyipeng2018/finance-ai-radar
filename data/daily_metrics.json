@@ -1,33 +1,14 @@
 {
-  "status": "ok",
-  "source": "tsv",
-  "sessions": 2,
-  "total_source_clicks": 1,
-  "top_items": [
-    [
-      "dataset-sec-edgar",
-      1
-    ]
-  ],
-  "top_source_types": [
-    [
-      "dataset",
-      1
-    ]
-  ],
-  "top_themes": [
-    [
-      "Public-domain finance text",
-      1
-    ]
-  ],
+  "sessions": 0,
+  "total_source_clicks": 0,
+  "top_items": [],
+  "top_source_types": [],
+  "top_themes": [],
   "top_date_windows": [],
-  "top_jobs": [
-    [
-      "job-financial-nlp-engineer-reviewed",
-      1
-    ]
-  ],
-  "average_scroll_depth": 40,
-  "high_intent_paths": []
+  "top_jobs": [],
+  "average_scroll_depth": 0,
+  "high_intent_paths": [],
+  "status": "analytics_error",
+  "source": "database",
+  "error": "psql not found"
 }

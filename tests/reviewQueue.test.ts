@@ -99,6 +99,7 @@ describe('review queue', () => {
     expect(summary.bySourceType.arxiv).toBe(1);
     expect(summary.bySourceType.github).toBeUndefined();
     expect(summary.staleCandidates).toBe(1);
+    expect(summary.staleCandidateShare).toBe(50);
     expect(summary.staleBySourceType.huggingface_model).toBe(1);
     expect(summary.staleBySourceType.arxiv).toBeUndefined();
     expect(summary.oldestCandidateAgeDays).toBe(10);
@@ -138,6 +139,7 @@ describe('review queue', () => {
     expect(candidateAgeDays(futureCandidate, now)).toBe(0);
     expect(candidateAgeDays(malformedCandidate, now)).toBe(0);
     expect(reviewQueueSummary([futureCandidate, malformedCandidate], now).oldestCandidateAgeDays).toBe(0);
+    expect(reviewQueueSummary([], now).staleCandidateShare).toBe(0);
   });
 
   it('sorts active review candidates by triage priority and queue age', () => {

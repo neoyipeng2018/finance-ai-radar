@@ -35,6 +35,7 @@ export type ReviewQueueSummary = {
   bySourceType: Partial<Record<SourceType, number>>;
   staleBySourceType: Partial<Record<SourceType, number>>;
   staleCandidates: number;
+  staleCandidateShare: number;
   oldestCandidateAgeDays: number;
 };
 
@@ -145,5 +146,6 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
       staleBySourceType[candidate.sourceType] = (staleBySourceType[candidate.sourceType] ?? 0) + 1;
     }
   });
-  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, oldestCandidateAgeDays };
+  const staleCandidateShare = candidates.length === 0 ? 0 : Math.round((staleCandidates / candidates.length) * 100);
+  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, staleCandidateShare, oldestCandidateAgeDays };
 }
