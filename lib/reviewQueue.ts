@@ -36,6 +36,7 @@ export type ReviewQueueSummary = {
   staleBySourceType: Partial<Record<SourceType, number>>;
   staleCandidates: number;
   staleCandidateShare: number;
+  nearArchiveCandidates: number;
   oldestCandidateAgeDays: number;
 };
 
@@ -134,6 +135,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   const staleBySourceType: Partial<Record<SourceType, number>> = {};
   const staleThresholdMs = 7 * MS_PER_DAY;
   let staleCandidates = 0;
+  let nearArchiveCandidates = 0;
   let oldestCandidateAgeDays = 0;
   candidates.forEach((candidate) => {
     byStatus[candidate.status] += 1;
@@ -141,11 +143,14 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     const ageMs = now.getTime() - new Date(candidate.discoveredAt).getTime();
     const ageDays = candidateAgeDays(candidate, now);
     oldestCandidateAgeDays = Math.max(oldestCandidateAgeDays, ageDays);
+    if ((candidate.status === 'candidate' || candidate.status === 'triaged') && ageDays >= 21) {
+      nearArchiveCandidates += 1;
+    }
     if ((candidate.status === 'candidate' || candidate.status === 'triaged') && ageMs > staleThresholdMs) {
       staleCandidates += 1;
       staleBySourceType[candidate.sourceType] = (staleBySourceType[candidate.sourceType] ?? 0) + 1;
     }
   });
   const staleCandidateShare = candidates.length === 0 ? 0 : Math.round((staleCandidates / candidates.length) * 100);
-  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, staleCandidateShare, oldestCandidateAgeDays };
+  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays };
 }

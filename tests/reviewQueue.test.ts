@@ -103,6 +103,7 @@ describe('review queue', () => {
     expect(summary.staleBySourceType.huggingface_model).toBe(1);
     expect(summary.staleBySourceType.arxiv).toBeUndefined();
     expect(summary.oldestCandidateAgeDays).toBe(10);
+    expect(summary.nearArchiveCandidates).toBe(0);
     expect(candidateAgeDays(candidates[0], new Date('2026-08-04T00:00:00.000Z'))).toBe(10);
   });
 
@@ -140,6 +141,52 @@ describe('review queue', () => {
     expect(candidateAgeDays(malformedCandidate, now)).toBe(0);
     expect(reviewQueueSummary([futureCandidate, malformedCandidate], now).oldestCandidateAgeDays).toBe(0);
     expect(reviewQueueSummary([], now).staleCandidateShare).toBe(0);
+    expect(reviewQueueSummary([], now).nearArchiveCandidates).toBe(0);
+  });
+
+  it('counts active candidates nearing the 30-day archive window', () => {
+    const candidates = parseReviewCandidateRows([
+      {
+        candidate_id: 'near-archive-candidate',
+        source_type: 'huggingface_model',
+        title: 'Near archive finance model candidate',
+        url: 'https://huggingface.co/example/near-archive-finance-model',
+        publisher: 'Example',
+        discovered_at: '2026-07-10T00:00:00.000Z',
+        relevance_reason: 'A finance model candidate old enough to need review before archive cleanup.',
+        license_guess: 'apache-2.0',
+        status: 'candidate',
+        reviewer_notes: 'Needs model-risk review.',
+      },
+      {
+        candidate_id: 'near-archive-reviewed',
+        source_type: 'huggingface_dataset',
+        title: 'Reviewed old finance dataset candidate',
+        url: 'https://huggingface.co/datasets/example/old-reviewed-finance-dataset',
+        publisher: 'Example',
+        discovered_at: '2026-07-05T00:00:00.000Z',
+        relevance_reason: 'A reviewed finance dataset should not count as active near-archive triage work.',
+        license_guess: 'mit',
+        status: 'reviewed',
+        reviewer_notes: 'Already reviewed.',
+      },
+      {
+        candidate_id: 'fresh-candidate',
+        source_type: 'huggingface_paper',
+        title: 'Fresh finance paper candidate',
+        url: 'https://huggingface.co/papers/2608.00001',
+        publisher: 'Hugging Face Papers',
+        discovered_at: '2026-07-25T00:00:00.000Z',
+        relevance_reason: 'A fresh finance paper candidate should not count near archive yet.',
+        license_guess: 'Public abstract metadata only',
+        status: 'candidate',
+        reviewer_notes: 'Needs reproducibility review.',
+      },
+    ]);
+
+    const summary = reviewQueueSummary(candidates, new Date('2026-08-04T00:00:00.000Z'));
+
+    expect(summary.nearArchiveCandidates).toBe(1);
   });
 
   it('sorts active review candidates by triage priority and queue age', () => {
