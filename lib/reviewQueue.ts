@@ -38,6 +38,7 @@ export type ReviewQueueSummary = {
   staleCandidateShare: number;
   nearArchiveCandidates: number;
   oldestCandidateAgeDays: number;
+  oldestCandidateSourceType: SourceType | null;
 };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -54,6 +55,10 @@ export function candidateAgeDays(candidate: ReviewCandidate, now: Date): number 
   const discoveredAt = new Date(candidate.discoveredAt).getTime();
   if (Number.isNaN(discoveredAt)) return 0;
   return Math.max(0, Math.floor((now.getTime() - discoveredAt) / MS_PER_DAY));
+}
+
+function isActiveReviewCandidate(candidate: ReviewCandidate): boolean {
+  return candidate.status === 'candidate' || candidate.status === 'triaged';
 }
 
 export function sortReviewCandidatesForTriage(candidates: ReviewCandidate[], now: Date): ReviewCandidate[] {
@@ -137,20 +142,25 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   let staleCandidates = 0;
   let nearArchiveCandidates = 0;
   let oldestCandidateAgeDays = 0;
+  let oldestCandidateSourceType: SourceType | null = null;
   candidates.forEach((candidate) => {
     byStatus[candidate.status] += 1;
     bySourceType[candidate.sourceType] = (bySourceType[candidate.sourceType] ?? 0) + 1;
     const ageMs = now.getTime() - new Date(candidate.discoveredAt).getTime();
     const ageDays = candidateAgeDays(candidate, now);
-    oldestCandidateAgeDays = Math.max(oldestCandidateAgeDays, ageDays);
-    if ((candidate.status === 'candidate' || candidate.status === 'triaged') && ageDays >= 21) {
+    const isActive = isActiveReviewCandidate(candidate);
+    if (isActive && ageDays > oldestCandidateAgeDays) {
+      oldestCandidateAgeDays = ageDays;
+      oldestCandidateSourceType = candidate.sourceType;
+    }
+    if (isActive && ageDays >= 21) {
       nearArchiveCandidates += 1;
     }
-    if ((candidate.status === 'candidate' || candidate.status === 'triaged') && ageMs > staleThresholdMs) {
+    if (isActive && ageMs > staleThresholdMs) {
       staleCandidates += 1;
       staleBySourceType[candidate.sourceType] = (staleBySourceType[candidate.sourceType] ?? 0) + 1;
     }
   });
   const staleCandidateShare = candidates.length === 0 ? 0 : Math.round((staleCandidates / candidates.length) * 100);
-  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays };
+  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays, oldestCandidateSourceType };
 }
