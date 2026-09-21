@@ -34,6 +34,7 @@ export type ReviewQueueSummary = {
   byStatus: Record<ReviewStatus, number>;
   bySourceType: Partial<Record<SourceType, number>>;
   staleBySourceType: Partial<Record<SourceType, number>>;
+  activeCandidates: number;
   staleCandidates: number;
   staleCandidateShare: number;
   nearArchiveCandidates: number;
@@ -139,6 +140,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   const bySourceType: Partial<Record<SourceType, number>> = {};
   const staleBySourceType: Partial<Record<SourceType, number>> = {};
   const staleThresholdMs = 7 * MS_PER_DAY;
+  let activeCandidates = 0;
   let staleCandidates = 0;
   let nearArchiveCandidates = 0;
   let oldestCandidateAgeDays = 0;
@@ -149,6 +151,9 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     const ageMs = now.getTime() - new Date(candidate.discoveredAt).getTime();
     const ageDays = candidateAgeDays(candidate, now);
     const isActive = isActiveReviewCandidate(candidate);
+    if (isActive) {
+      activeCandidates += 1;
+    }
     if (isActive && ageDays > oldestCandidateAgeDays) {
       oldestCandidateAgeDays = ageDays;
       oldestCandidateSourceType = candidate.sourceType;
@@ -161,6 +166,6 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
       staleBySourceType[candidate.sourceType] = (staleBySourceType[candidate.sourceType] ?? 0) + 1;
     }
   });
-  const staleCandidateShare = candidates.length === 0 ? 0 : Math.round((staleCandidates / candidates.length) * 100);
-  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays, oldestCandidateSourceType };
+  const staleCandidateShare = activeCandidates === 0 ? 0 : Math.round((staleCandidates / activeCandidates) * 100);
+  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays, oldestCandidateSourceType };
 }

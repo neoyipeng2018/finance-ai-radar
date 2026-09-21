@@ -7,6 +7,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 QUEUE = ROOT / 'data' / 'review_queue.tsv'
+LEDGER = ROOT / 'data' / 'source_ledger.tsv'
 FIELDS = ['candidate_id', 'source_type', 'title', 'url', 'publisher', 'discovered_at', 'relevance_reason', 'license_guess', 'status', 'reviewer_notes']
 QUERIES = ['finbert', 'finance sentiment', 'financial embedding', 'sec filings', 'financial nlp']
 
@@ -52,9 +53,22 @@ def existing_ids() -> set[str]:
     with QUEUE.open(newline='') as f:
         return {row['candidate_id'] for row in csv.DictReader(f, delimiter='\t')}
 
+def existing_urls() -> set[str]:
+    urls: set[str] = set()
+    for path in [QUEUE, LEDGER]:
+        if not path.exists():
+            continue
+        with path.open(newline='') as f:
+            for row in csv.DictReader(f, delimiter='\t'):
+                url = row.get('url', '').strip()
+                if url:
+                    urls.add(url)
+    return urls
+
 def main() -> None:
     QUEUE.parent.mkdir(parents=True, exist_ok=True)
     existing = existing_ids()
+    urls = existing_urls()
     write_header = not QUEUE.exists()
     with QUEUE.open('a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=FIELDS, delimiter='\t')
@@ -63,9 +77,10 @@ def main() -> None:
         for query in QUERIES:
             for model in fetch_models(query):
                 row = candidate(model, query)
-                if row['candidate_id'] not in existing and row['title']:
+                if row['candidate_id'] not in existing and row['url'] not in urls and row['title']:
                     writer.writerow(row)
                     existing.add(row['candidate_id'])
+                    urls.add(row['url'])
 
 if __name__ == '__main__':
     main()

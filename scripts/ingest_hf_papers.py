@@ -11,8 +11,8 @@ FIELDS = ['candidate_id', 'source_type', 'title', 'url', 'publisher', 'discovere
 QUERIES = ['FinGPT', 'financial sentiment', 'finance large language model', 'financial question answering', 'FinBERT']
 FINANCE_TERMS = [
     'finance', 'financial', 'fingpt', 'finbert', 'trading', 'stock', 'market',
-    'portfolio', 'asset', 'risk', 'sec filing', 'earnings', 'bank',
-    'defi', 'crypto', 'investment', 'alpha', 'return', 'covariance',
+    'portfolio', 'sec filing', 'earnings', 'bank', 'defi', 'crypto',
+    'investment', 'alpha', 'covariance',
 ]
 
 def fetch_papers(query: str) -> list[dict[str, object]]:

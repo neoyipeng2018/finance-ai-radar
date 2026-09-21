@@ -91,13 +91,27 @@ describe('review queue', () => {
         status: 'candidate',
         reviewer_notes: 'Needs reproducibility review.',
       },
+      {
+        candidate_id: 'reviewed-source-summary',
+        source_type: 'huggingface_dataset',
+        title: 'Reviewed finance dataset source summary candidate',
+        url: 'https://huggingface.co/datasets/example/reviewed-finance-dataset',
+        publisher: 'Example',
+        discovered_at: '2026-07-20T00:00:00.000Z',
+        relevance_reason: 'A reviewed finance dataset should not dilute active stale share calculation.',
+        license_guess: 'mit',
+        status: 'reviewed',
+        reviewer_notes: 'Already reviewed.',
+      },
     ]);
 
     const summary = reviewQueueSummary(candidates, new Date('2026-08-04T00:00:00.000Z'));
 
     expect(summary.bySourceType.huggingface_model).toBe(1);
     expect(summary.bySourceType.arxiv).toBe(1);
+    expect(summary.bySourceType.huggingface_dataset).toBe(1);
     expect(summary.bySourceType.github).toBeUndefined();
+    expect(summary.activeCandidates).toBe(2);
     expect(summary.staleCandidates).toBe(1);
     expect(summary.staleCandidateShare).toBe(50);
     expect(summary.staleBySourceType.huggingface_model).toBe(1);
