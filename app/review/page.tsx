@@ -8,6 +8,7 @@ export default function ReviewQueuePage() {
   const summary = reviewQueueSummary(candidates, now);
   const triageCandidates = sortReviewCandidatesForTriage(candidates, now);
   const sourceTypeEntries = Object.entries(summary.bySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
+  const activeSourceTypeEntries = Object.entries(summary.activeBySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
   const staleSourceTypeEntries = Object.entries(summary.staleBySourceType).sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
 
   return (
@@ -37,6 +38,13 @@ export default function ReviewQueuePage() {
             <article className="metric-card" key={sourceType}><span>{sourceType}</span><strong>{count}</strong><p>Candidate source mix</p></article>
           ))}
         </div>
+        {activeSourceTypeEntries.length > 0 ? (
+          <div className="grid four">
+            {activeSourceTypeEntries.map(([sourceType, count]) => (
+              <article className="metric-card" key={sourceType}><span>{sourceType}</span><strong>{count}</strong><p>Active source mix for reviewer ownership</p></article>
+            ))}
+          </div>
+        ) : null}
         {staleSourceTypeEntries.length > 0 ? (
           <div className="grid four">
             {staleSourceTypeEntries.map(([sourceType, count]) => (

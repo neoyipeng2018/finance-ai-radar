@@ -111,6 +111,9 @@ describe('review queue', () => {
     expect(summary.bySourceType.arxiv).toBe(1);
     expect(summary.bySourceType.huggingface_dataset).toBe(1);
     expect(summary.bySourceType.github).toBeUndefined();
+    expect(summary.activeBySourceType.huggingface_model).toBe(1);
+    expect(summary.activeBySourceType.arxiv).toBe(1);
+    expect(summary.activeBySourceType.huggingface_dataset).toBeUndefined();
     expect(summary.activeCandidates).toBe(2);
     expect(summary.staleCandidates).toBe(1);
     expect(summary.staleCandidateShare).toBe(50);

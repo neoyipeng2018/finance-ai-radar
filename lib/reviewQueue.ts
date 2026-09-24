@@ -33,6 +33,7 @@ export type ReviewQueueSummary = {
   total: number;
   byStatus: Record<ReviewStatus, number>;
   bySourceType: Partial<Record<SourceType, number>>;
+  activeBySourceType: Partial<Record<SourceType, number>>;
   staleBySourceType: Partial<Record<SourceType, number>>;
   activeCandidates: number;
   staleCandidates: number;
@@ -138,6 +139,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     rejected: 0,
   };
   const bySourceType: Partial<Record<SourceType, number>> = {};
+  const activeBySourceType: Partial<Record<SourceType, number>> = {};
   const staleBySourceType: Partial<Record<SourceType, number>> = {};
   const staleThresholdMs = 7 * MS_PER_DAY;
   let activeCandidates = 0;
@@ -153,6 +155,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     const isActive = isActiveReviewCandidate(candidate);
     if (isActive) {
       activeCandidates += 1;
+      activeBySourceType[candidate.sourceType] = (activeBySourceType[candidate.sourceType] ?? 0) + 1;
     }
     if (isActive && ageDays > oldestCandidateAgeDays) {
       oldestCandidateAgeDays = ageDays;
@@ -167,5 +170,5 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     }
   });
   const staleCandidateShare = activeCandidates === 0 ? 0 : Math.round((staleCandidates / activeCandidates) * 100);
-  return { total: candidates.length, byStatus, bySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays, oldestCandidateSourceType };
+  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays, oldestCandidateSourceType };
 }
