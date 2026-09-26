@@ -122,6 +122,7 @@ describe('review queue', () => {
     expect(summary.oldestCandidateAgeDays).toBe(10);
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
     expect(summary.nearArchiveCandidates).toBe(0);
+    expect(summary.archiveRunwayDays).toBe(20);
     expect(candidateAgeDays(candidates[0], new Date('2026-08-04T00:00:00.000Z'))).toBe(10);
   });
 
@@ -160,6 +161,7 @@ describe('review queue', () => {
     expect(reviewQueueSummary([futureCandidate, malformedCandidate], now).oldestCandidateAgeDays).toBe(0);
     expect(reviewQueueSummary([], now).staleCandidateShare).toBe(0);
     expect(reviewQueueSummary([], now).nearArchiveCandidates).toBe(0);
+    expect(reviewQueueSummary([], now).archiveRunwayDays).toBe(0);
     expect(reviewQueueSummary([], now).oldestCandidateSourceType).toBeNull();
   });
 
@@ -206,6 +208,7 @@ describe('review queue', () => {
     const summary = reviewQueueSummary(candidates, new Date('2026-08-04T00:00:00.000Z'));
 
     expect(summary.nearArchiveCandidates).toBe(1);
+    expect(summary.archiveRunwayDays).toBe(5);
     expect(summary.oldestCandidateAgeDays).toBe(25);
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
   });

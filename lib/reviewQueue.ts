@@ -39,6 +39,7 @@ export type ReviewQueueSummary = {
   staleCandidates: number;
   staleCandidateShare: number;
   nearArchiveCandidates: number;
+  archiveRunwayDays: number;
   oldestCandidateAgeDays: number;
   oldestCandidateSourceType: SourceType | null;
 };
@@ -170,5 +171,6 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     }
   });
   const staleCandidateShare = activeCandidates === 0 ? 0 : Math.round((staleCandidates / activeCandidates) * 100);
-  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, oldestCandidateAgeDays, oldestCandidateSourceType };
+  const archiveRunwayDays = activeCandidates === 0 ? 0 : Math.max(0, 30 - oldestCandidateAgeDays);
+  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, archiveRunwayDays, oldestCandidateAgeDays, oldestCandidateSourceType };
 }
