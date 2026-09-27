@@ -29,7 +29,7 @@ export default function ReviewQueuePage() {
           {Object.entries(summary.byStatus).map(([status, count]) => (
             <article className="metric-card" key={status}><span>{status}</span><strong>{count}</strong><p>Queue status count</p></article>
           ))}
-          <article className="metric-card"><span>oldest active candidate</span><strong>{summary.oldestCandidateAgeDays}d</strong><p>{summary.oldestCandidateSourceType ?? 'No active queue items'} source needing triage</p></article>
+          <article className="metric-card"><span>oldest active candidate</span><strong>{summary.oldestCandidateAgeDays}d</strong><p>{summary.oldestCandidateTitle ?? 'No active queue items'} · {summary.oldestCandidateSourceType ?? 'none'} source</p></article>
           <article className="metric-card"><span>stale share</span><strong>{summary.staleCandidateShare}%</strong><p>{summary.staleCandidates} of {summary.activeCandidates} active items older than seven days</p></article>
           <article className="metric-card"><span>archive runway</span><strong>{summary.archiveRunwayDays}d</strong><p>{summary.nearArchiveCandidates} active items at least 21 days old</p></article>
         </div>
