@@ -42,6 +42,7 @@ export type ReviewQueueSummary = {
   archiveRunwayDays: number;
   oldestCandidateAgeDays: number;
   oldestCandidateTitle: string | null;
+  oldestCandidateDiscoveredAt: string | null;
   oldestCandidateSourceType: SourceType | null;
 };
 
@@ -149,6 +150,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   let nearArchiveCandidates = 0;
   let oldestCandidateAgeDays = 0;
   let oldestCandidateTitle: string | null = null;
+  let oldestCandidateDiscoveredAt: string | null = null;
   let oldestCandidateSourceType: SourceType | null = null;
   candidates.forEach((candidate) => {
     byStatus[candidate.status] += 1;
@@ -163,6 +165,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
     if (isActive && ageDays > oldestCandidateAgeDays) {
       oldestCandidateAgeDays = ageDays;
       oldestCandidateTitle = candidate.title;
+      oldestCandidateDiscoveredAt = candidate.discoveredAt;
       oldestCandidateSourceType = candidate.sourceType;
     }
     if (isActive && ageDays >= 21) {
@@ -175,5 +178,5 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   });
   const staleCandidateShare = activeCandidates === 0 ? 0 : Math.round((staleCandidates / activeCandidates) * 100);
   const archiveRunwayDays = activeCandidates === 0 ? 0 : Math.max(0, 30 - oldestCandidateAgeDays);
-  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, archiveRunwayDays, oldestCandidateAgeDays, oldestCandidateTitle, oldestCandidateSourceType };
+  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, archiveRunwayDays, oldestCandidateAgeDays, oldestCandidateTitle, oldestCandidateDiscoveredAt, oldestCandidateSourceType };
 }

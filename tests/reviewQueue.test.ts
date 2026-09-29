@@ -121,6 +121,7 @@ describe('review queue', () => {
     expect(summary.staleBySourceType.arxiv).toBeUndefined();
     expect(summary.oldestCandidateAgeDays).toBe(10);
     expect(summary.oldestCandidateTitle).toBe('Finance language model source summary candidate');
+    expect(summary.oldestCandidateDiscoveredAt).toBe('2026-07-25T00:00:00.000Z');
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
     expect(summary.nearArchiveCandidates).toBe(0);
     expect(summary.archiveRunwayDays).toBe(20);
@@ -164,6 +165,7 @@ describe('review queue', () => {
     expect(reviewQueueSummary([], now).nearArchiveCandidates).toBe(0);
     expect(reviewQueueSummary([], now).archiveRunwayDays).toBe(0);
     expect(reviewQueueSummary([], now).oldestCandidateTitle).toBeNull();
+    expect(reviewQueueSummary([], now).oldestCandidateDiscoveredAt).toBeNull();
     expect(reviewQueueSummary([], now).oldestCandidateSourceType).toBeNull();
   });
 
@@ -213,6 +215,7 @@ describe('review queue', () => {
     expect(summary.archiveRunwayDays).toBe(5);
     expect(summary.oldestCandidateAgeDays).toBe(25);
     expect(summary.oldestCandidateTitle).toBe('Near archive finance model candidate');
+    expect(summary.oldestCandidateDiscoveredAt).toBe('2026-07-10T00:00:00.000Z');
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
   });
 
