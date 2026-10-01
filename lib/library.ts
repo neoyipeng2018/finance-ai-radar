@@ -232,6 +232,14 @@ export function getTopClickedSourceType(topSourceTypes: ReadonlyArray<ReadonlyAr
   return undefined;
 }
 
+export function getTopClickedSourceSummary(items: ContentItem[], topSourceTypes: ReadonlyArray<ReadonlyArray<string | number>>): { sourceType: SourceType; clicks: number; reviewedItems: number } | undefined {
+  const topSourceType = getTopClickedSourceType(topSourceTypes);
+  if (!topSourceType) return undefined;
+  const reviewedItems = items.filter((item) => reviewed(item) && item.sourceType === topSourceType.sourceType).length;
+  if (reviewedItems === 0) return undefined;
+  return { ...topSourceType, reviewedItems };
+}
+
 export function getJobsCoverage(items: ContentItem[]): JobsCoverage {
   const jobs = items.filter((item) => reviewed(item) && item.sourceType === 'job' && item.jobFields);
   return {

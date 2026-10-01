@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import dailyMetrics from '../data/daily_metrics.json';
 import { sourceItems } from '../data/sourceItems';
-import { getDashboardSnapshot, getDatasetCoverage, getEditorialMetrics, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getThemeBriefs, getTopClickedItem, getTopClickedSourceType, searchItems, sourceLabel } from '../lib/library';
+import { getDashboardSnapshot, getDatasetCoverage, getEditorialMetrics, getHuggingFaceCoverage, getJobsCoverage, getSourceCounts, getThemeBriefs, getTopClickedItem, getTopClickedSourceSummary, searchItems, sourceLabel } from '../lib/library';
 import { getReviewCandidates, reviewQueueSummary } from '../lib/reviewQueueStore';
 import type { ContentItem, SourceType, ThemeBrief } from '../lib/types';
 
@@ -72,7 +72,7 @@ export default function Home() {
     .slice(0, 4);
   const hiringSignal = searchItems(sourceItems, { query: '', sourceType: 'job', theme: 'all', dateWindow: 'all' })[0];
   const readerItemSignal = getTopClickedItem(sourceItems, dailyMetrics.top_items);
-  const readerSourceSignal = getTopClickedSourceType(dailyMetrics.top_source_types);
+  const readerSourceSignal = getTopClickedSourceSummary(sourceItems, dailyMetrics.top_source_types);
   const topSignals = dashboard.topItems.slice(0, 3);
   const reviewedItems = dashboard.heroStats.find((stat) => stat.label === 'Reviewed')?.value ?? '0';
 
@@ -189,7 +189,7 @@ export default function Home() {
             <div className="hiring-card">
               <span>Reader source demand</span>
               <strong>{sourceLabel(readerSourceSignal.sourceType)}</strong>
-              <small>{readerSourceSignal.clicks} source click{readerSourceSignal.clicks === 1 ? '' : 's'} in the latest analytics snapshot; weak signal only, not an editorial override.</small>
+              <small>{readerSourceSignal.clicks} source click{readerSourceSignal.clicks === 1 ? '' : 's'} across {readerSourceSignal.reviewedItems} reviewed item{readerSourceSignal.reviewedItems === 1 ? '' : 's'} in this channel; weak signal only, not an editorial override.</small>
             </div>
           ) : null}
           <div className="source-bars">

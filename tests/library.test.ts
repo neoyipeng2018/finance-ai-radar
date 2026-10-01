@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysForWindow, getEditorialMetrics, getFeaturedItems, getSourceCounts, getThemeBriefs, isWithinDateWindow, searchItems } from '../lib/library';
+import { daysForWindow, getEditorialMetrics, getFeaturedItems, getSourceCounts, getThemeBriefs, getTopClickedSourceSummary, isWithinDateWindow, searchItems } from '../lib/library';
 import { sourceItems } from '../data/sourceItems';
 
 describe('curated library', () => {
@@ -36,6 +36,14 @@ describe('curated library', () => {
     expect(counts.arxiv).toBeGreaterThan(0);
     expect(themes[0].items).toBeGreaterThanOrEqual(themes[1].items);
     expect(themes.map((theme) => theme.name)).toContain('LLMs for equity research');
+  });
+
+  it('summarizes reader source demand only for recognized channels with reviewed items', () => {
+    const datasetSignal = getTopClickedSourceSummary(sourceItems, [['dataset', 1]]);
+    const unknownSignal = getTopClickedSourceSummary(sourceItems, [['unknown_feed', 2]]);
+
+    expect(datasetSignal).toEqual({ sourceType: 'dataset', clicks: 1, reviewedItems: 2 });
+    expect(unknownSignal).toBeUndefined();
   });
 
   it('summarizes editorial quality, rights posture, and coverage gaps', () => {
