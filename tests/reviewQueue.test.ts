@@ -125,6 +125,7 @@ describe('review queue', () => {
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
     expect(summary.nextReviewCandidateId).toBe('hf-model-source-summary');
     expect(summary.nextReviewCandidateStatus).toBe('candidate');
+    expect(summary.nextReviewCandidateLicenseGuess).toBe('apache-2.0');
     expect(summary.nearArchiveCandidates).toBe(0);
     expect(summary.archiveRunwayDays).toBe(20);
     expect(candidateAgeDays(candidates[0], new Date('2026-08-04T00:00:00.000Z'))).toBe(10);
@@ -171,6 +172,7 @@ describe('review queue', () => {
     expect(reviewQueueSummary([], now).oldestCandidateSourceType).toBeNull();
     expect(reviewQueueSummary([], now).nextReviewCandidateId).toBeNull();
     expect(reviewQueueSummary([], now).nextReviewCandidateStatus).toBeNull();
+    expect(reviewQueueSummary([], now).nextReviewCandidateLicenseGuess).toBeNull();
   });
 
   it('counts active candidates nearing the 30-day archive window', () => {
@@ -223,6 +225,7 @@ describe('review queue', () => {
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
     expect(summary.nextReviewCandidateId).toBe('near-archive-candidate');
     expect(summary.nextReviewCandidateStatus).toBe('candidate');
+    expect(summary.nextReviewCandidateLicenseGuess).toBe('apache-2.0');
   });
 
   it('sorts active review candidates by triage priority and queue age', () => {
