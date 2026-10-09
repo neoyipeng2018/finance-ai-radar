@@ -45,6 +45,7 @@ export type ReviewQueueSummary = {
   oldestCandidateDiscoveredAt: string | null;
   oldestCandidateSourceType: SourceType | null;
   nextReviewCandidateId: string | null;
+  nextReviewCandidateTitle: string | null;
   nextReviewCandidateStatus: ReviewStatus | null;
   nextReviewCandidateLicenseGuess: string | null;
   nextReviewCandidateReviewerNotes: string | null;
@@ -157,6 +158,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   let oldestCandidateDiscoveredAt: string | null = null;
   let oldestCandidateSourceType: SourceType | null = null;
   let nextReviewCandidateId: string | null = null;
+  let nextReviewCandidateTitle: string | null = null;
   let nextReviewCandidateStatus: ReviewStatus | null = null;
   let nextReviewCandidateLicenseGuess: string | null = null;
   let nextReviewCandidateReviewerNotes: string | null = null;
@@ -173,6 +175,7 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
       const nextReviewList = nextReviewCandidateSortKey ? sortReviewCandidatesForTriage([nextReviewCandidateSortKey, candidate], now) : [candidate];
       nextReviewCandidateSortKey = nextReviewList[0];
       nextReviewCandidateId = nextReviewCandidateSortKey.candidateId;
+      nextReviewCandidateTitle = nextReviewCandidateSortKey.title;
       nextReviewCandidateStatus = nextReviewCandidateSortKey.status;
       nextReviewCandidateLicenseGuess = nextReviewCandidateSortKey.licenseGuess;
       nextReviewCandidateReviewerNotes = nextReviewCandidateSortKey.reviewerNotes;
@@ -193,5 +196,5 @@ export function summarizeReviewQueue(candidates: ReviewCandidate[], now: Date): 
   });
   const staleCandidateShare = activeCandidates === 0 ? 0 : Math.round((staleCandidates / activeCandidates) * 100);
   const archiveRunwayDays = activeCandidates === 0 ? 0 : Math.max(0, 30 - oldestCandidateAgeDays);
-  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, archiveRunwayDays, oldestCandidateAgeDays, oldestCandidateTitle, oldestCandidateDiscoveredAt, oldestCandidateSourceType, nextReviewCandidateId, nextReviewCandidateStatus, nextReviewCandidateLicenseGuess, nextReviewCandidateReviewerNotes };
+  return { total: candidates.length, byStatus, bySourceType, activeBySourceType, staleBySourceType, activeCandidates, staleCandidates, staleCandidateShare, nearArchiveCandidates, archiveRunwayDays, oldestCandidateAgeDays, oldestCandidateTitle, oldestCandidateDiscoveredAt, oldestCandidateSourceType, nextReviewCandidateId, nextReviewCandidateTitle, nextReviewCandidateStatus, nextReviewCandidateLicenseGuess, nextReviewCandidateReviewerNotes };
 }

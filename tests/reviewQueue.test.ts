@@ -124,6 +124,7 @@ describe('review queue', () => {
     expect(summary.oldestCandidateDiscoveredAt).toBe('2026-07-25T00:00:00.000Z');
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
     expect(summary.nextReviewCandidateId).toBe('hf-model-source-summary');
+    expect(summary.nextReviewCandidateTitle).toBe('Finance language model source summary candidate');
     expect(summary.nextReviewCandidateStatus).toBe('candidate');
     expect(summary.nextReviewCandidateLicenseGuess).toBe('apache-2.0');
     expect(summary.nextReviewCandidateReviewerNotes).toBe('Needs model-risk review.');
@@ -172,6 +173,7 @@ describe('review queue', () => {
     expect(reviewQueueSummary([], now).oldestCandidateDiscoveredAt).toBeNull();
     expect(reviewQueueSummary([], now).oldestCandidateSourceType).toBeNull();
     expect(reviewQueueSummary([], now).nextReviewCandidateId).toBeNull();
+    expect(reviewQueueSummary([], now).nextReviewCandidateTitle).toBeNull();
     expect(reviewQueueSummary([], now).nextReviewCandidateStatus).toBeNull();
     expect(reviewQueueSummary([], now).nextReviewCandidateLicenseGuess).toBeNull();
     expect(reviewQueueSummary([], now).nextReviewCandidateReviewerNotes).toBeNull();
@@ -226,6 +228,7 @@ describe('review queue', () => {
     expect(summary.oldestCandidateDiscoveredAt).toBe('2026-07-10T00:00:00.000Z');
     expect(summary.oldestCandidateSourceType).toBe('huggingface_model');
     expect(summary.nextReviewCandidateId).toBe('near-archive-candidate');
+    expect(summary.nextReviewCandidateTitle).toBe('Near archive finance model candidate');
     expect(summary.nextReviewCandidateStatus).toBe('candidate');
     expect(summary.nextReviewCandidateLicenseGuess).toBe('apache-2.0');
     expect(summary.nextReviewCandidateReviewerNotes).toBe('Needs model-risk review.');
